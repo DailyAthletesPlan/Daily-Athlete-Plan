@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Athlete Daily Planner — Classic (Bold)</title>
+<style>
+  :root { --text:#000; --muted:#2b2b2b; --soft:#e6e6e6; --bg:#fff; }
+  html, body { height:100%; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Times New Roman", Times, serif; color:var(--text); background:#fff; font-weight:700; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  .container { max-width:820px; margin:0 auto; padding:16px; min-height:100dvh; padding-bottom:128px; background:#fff; }
+  h1{font-size:28px;margin:0 0 6px;} h2{font-size:22px;margin:0 0 10px;} h3{font-size:20px;margin:0 0 8px;} p.muted{color:#2b2b2b;margin:0;font-size:15px;}
+  .card{background:#fff;border:1px solid #e6e6e6;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .grid{display:grid;grid-gap:12px;} .grid-2{grid-template-columns:1fr 1fr;} @media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+  label{display:block;font-size:13px;margin-bottom:6px;color:#2b2b2b;}
+  input,select,button,textarea{font-family:"Times New Roman", Times, serif;font-weight:700;color:#000;background:#fff;}
+  input[type="number"],input[type="text"],select,textarea{width:100%;border:1px solid #e6e6e6;border-radius:10px;padding:10px 12px;font-size:16px;outline:none;background:#fff;}
+  textarea{min-height:84px;resize:vertical;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{border:1px solid #e6e6e6;border-radius:12px;padding:10px 14px;background:#fff;cursor:pointer;}
+  .btn:active{transform:translateY(1px);}
+  .likert-row{border:1px solid #e6e6e6;border-radius:10px;padding:12px;background:#fff;}
+  .likert-label{font-size:16px;margin-bottom:8px;white-space:normal;}
+  .likert{display:flex;gap:6px;flex-wrap:wrap;}
+  .likert button{width:44px;height:44px;border-radius:8px;border:1px solid #e6e6e6;background:#fff;font-size:16px;}
+  .likert button.active{background:#000;color:#fff;border-color:#000;}
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;} @media (max-width:520px){.kpi-grid{grid-template-columns:1fr;}}
+  .kpi{border:1px solid #e6e6e6;border-radius:12px;padding:12px;text-align:center;background:#fff;}
+  .kpi small{display:block;color:#2b2b2b;font-size:13px;margin-bottom:3px;}
+  .pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid #e6e6e6;color:#2b2b2b;background:#fff;}
+  .verse{border-left:3px solid #e6e6e6;padding-left:10px;background:#fff;}
+  .sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e6e6e6;padding:12px 16px;}
+  .sticky-inner{max-width:820px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+  @media (max-width:560px){.sticky-inner{grid-template-columns:1fr 1fr;}}
+  .sticky .block{display:flex;flex-direction:column;} .sticky small{color:#2b2b2b;}
+  .center-between{display:flex;align-items:center;justify-content:space-between;gap:8px;} .hide{display:none;} .mb-8{margin-bottom:8px;} ul{margin:0;padding-left:18px;}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="center-between mb-8">
+      <div>
+        <h1>Athlete Daily Planner</h1>
+        <p class="muted">Macros • Sleep • Hydration (gallons) • Cold Plunge • Plan • Breathing • Scripture • Self‑Talk • Prayer</p>
+      </div>
+      <div class="row">
+        <button id="exportBtn" class="btn">Print / Share</button>
+        <button id="unitsBtn" class="btn">Metric</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="center-between mb-8">
+        <h2>Profile</h2>
+        <span id="readinessPill" class="pill">Readiness —</span>
+      </div>
+      <div class="grid grid-2">
+        <div class="grid"><label>Sex</label><select id="sex"><option value="female">Female</option><option value="male">Male</option></select></div>
+        <div class="grid"><label>Age (years)</label><input id="age" type="number" value="24"></div>
+
+        <div class="grid" id="heightUS"><label>Height (ft / in)</label><div class="row"><input id="heightFt" type="number" placeholder="ft" value="5"><input id="heightIn" type="number" placeholder="in" value="6"></div></div>
+        <div class="grid hide" id="heightMetric"><label>Height (cm)</label><input id="heightCm" type="number" value="167.6"></div>
+
+        <div class="grid" id="weightUS"><label>Weight (lbs)</label><input id="weightLb" type="number" value="150"></div>
+        <div class="grid" id="goalWeightUS"><label>Goal weight (lbs)</label><input id="goalWeightLb" type="number" value="145"></div>
+
+        <div class="grid hide" id="weightMetric"><label>Weight (kg)</label><input id="weightKg" type="number" value="68"></div>
+        <div class="grid hide" id="goalWeightMetric"><label>Goal weight (kg)</label><input id="goalWeightKg" type="number" value="65.8"></div>
+
+        <div class="grid"><label>Activity level</label><select id="activity"><option value="sedentary">Sedentary (little to no exercise)</option><option value="light">Light (1–3 days/wk)</option><option value="moderate" selected>Moderate (3–5 days/wk)</option><option value="heavy">Heavy (6–7 days/wk)</option><option value="athlete">Athlete / 2-a-days</option></select></div>
+        <div class="grid"><label>Sleep last night (hours)</label><input id="sleepLast" type="number" step="0.1" value="7.0"></div>
+        <div class="grid"><label>Today's session focus</label><select id="sessionType"><option value="hypertrophy" selected>Hypertrophy / Heavy Strength</option><option value="power">Power / Sprint / Skill</option><option value="endurance">Conditioning / Endurance</option><option value="recovery">Recovery / Mobility</option><option value="competition">Competition / Back-to-back</option></select></div>
+        <div class="grid"><label>Session duration (min)</label><input id="sessionMin" type="number" value="60"></div>
+
+        <div class="grid" id="cycleWrap"><label>Menstrual cycle phase</label><select id="cycle"><option value="menstruation">Menstruation</option><option value="follicular" selected>Follicular</option><option value="ovulatory">Ovulatory</option><option value="luteal">Luteal</option></select></div>
+
+        <!-- NEW: Protein Emphasis -->
+        <div class="grid">
+          <label>Protein Emphasis</label>
+          <select id="protEmphasis">
+            <option value="normal" selected>Normal</option>
+            <option value="high">High</option>
+            <option value="very">Very High</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;"><button id="copyBtn" class="btn">Copy Plan</button><button id="ideasBtn" class="btn">Meal Ideas</button></div>
+    </div>
+
+    <div class="card">
+      <h2>15-Question Mental Health Check‑In (1 = Very Low • 5 = Very High)</h2>
+      <div id="likertList" style="max-height:460px;overflow:auto;"></div>
+      <p class="muted" style="margin-top:8px;">Reverse‑scored (higher number = worse): Stress, Anxiety, Soreness, Fatigue, Distractions.</p>
+    </div>
+
+    <div class="card"><h3>Today’s Plan</h3><div id="planBlocks"></div></div>
+
+    <div class="card">
+      <h3>Daily Macros</h3>
+      <p class="muted">Goal from goal weight: <b id="goalTag">MAINTAIN</b></p>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">BMR</span><b id="bmr">— kcal</b></div>
+        <div class="grid"><span class="muted">TDEE</span><b id="tdee">— kcal</b></div>
+        <div class="grid"><span class="muted">Target kcal</span><b id="target">— kcal</b></div>
+      </div>
+      <div class="kpi-grid" style="margin-top:8px;">
+        <div class="kpi"><small>Protein</small><b id="gP">—g</b></div>
+        <div class="kpi"><small>Carbs</small><b id="gC">—g</b></div>
+        <div class="kpi"><small>Fats</small><b id="gF">—g</b></div>
+      </div>
+      <div id="ideas" class="hide" style="margin-top:10px;"></div>
+      <p class="muted" style="margin-top:8px;" id="protNotes"></p>
+    </div>
+
+    <div class="card">
+      <h3>Cold Plunge</h3>
+      <p class="muted">Guided by session focus, inferred goal, soreness/readiness, and (if female) cycle.</p>
+      <div class="grid">
+        <div class="grid-2">
+          <div class="grid"><span class="muted">Recommend</span><b id="coldYesNo">—</b></div>
+          <div class="grid"><span class="muted">Timing</span><b id="coldTiming">—</b></div>
+        </div>
+        <div id="coldExtra" class="grid hide">
+          <div class="grid"><span class="muted">Temperature</span><b id="coldTemp"></b></div>
+          <div class="grid"><span class="muted">Duration</span><b id="coldDur"></b></div>
+        </div>
+        <div><span class="muted" id="coldWhy"></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Tonight’s Sleep</h3>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">Recommended duration</span><b style="font-size:28px;" id="sleepNeed">—</b><span class="muted">hours</span></div>
+        <div class="grid"><span class="muted">Pre‑sleep wind‑down</span><ul><li id="sleepBreath">5–10 min downshift breathing</li><li>90 min before bed: hot shower/bath</li><li>Limit screens & caffeine late</li></ul></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Hydration & Electrolytes</h3>
+      <p class="muted">Shown in gallons (gal). Baseline + session add‑on.</p>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">Baseline water</span><b id="hBase">— gal</b></div>
+        <div class="grid"><span class="muted">Session extra</span><b id="hExtra">— gal</b></div>
+        <div class="grid"><span class="muted">Total today</span><b id="hTotal">— gal</b></div>
+        <div class="grid"><span class="muted">Sodium target</span><b id="hNa">—</b></div>
+      </div>
+      <p class="muted" style="margin-top:6px;">Heavy sweaters/heat: consider upper end of sodium range and +0.1–0.2 gal.</p>
+    </div>
+
+    <div class="card"><h3>Breathing Session</h3><div id="breathBlock"></div></div>
+    <div class="card"><h3>Self‑Talk</h3><div id="selfTalk"></div></div>
+    <div class="card"><h3>Daily Prayer</h3><div id="prayer"></div></div>
+
+    <div class="card">
+      <h3>Scripture for Today (NKJV)</h3>
+      <div id="scripture" class="grid" style="grid-gap:10px;"></div>
+      <p class="muted">Brief passages from the New King James Version (NKJV).</p>
+    </div>
+  </div>
+
+  <div class="sticky">
+    <div class="sticky-inner">
+      <div class="block"><small>Target</small><b id="sumTarget">— kcal</b></div>
+      <div class="block"><small>P/C/F</small><b id="sumPCF">—/—/— g</b></div>
+      <div class="block"><small>Sleep</small><b id="sumSleep">— h</b></div>
+      <div class="block"><small>Cold</small><b id="sumCold">—</b></div>
+    </div>
+  </div>
+
+<script>
+const todayKey=new Date().toISOString().slice(0,10);
+function getBag(key){try{const raw=localStorage.getItem(key);if(!raw)return{date:todayKey,used:[]};const o=JSON.parse(raw);if(!o||o.date!==todayKey)return{date:todayKey,used:[]};return o;}catch{return{date:todayKey,used:[]};}}
+function setBag(key,bag){try{localStorage.setItem(key,JSON.stringify(bag));}catch{}}
+function nonRepeatingPick(key,arr,count){const bag=getBag(key);let pool=arr.map((v,i)=>({v,i})).filter(x=>!bag.used.includes(x.i));if(pool.length<count){bag.used=[];setBag(key,bag);}
+const bag2=getBag(key);pool=arr.map((v,i)=>({v,i})).filter(x=>!bag2.used.includes(x.i));for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}const picks=pool.slice(0,count);picks.forEach(p=>bag2.used.push(p.i));setBag(key,bag2);return picks.map(p=>p.v);}
+
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const kgFromLbs=lbs=>lbs*0.45359237; const lbsFromKg=kg=>kg/0.45359237; const cmFromFtIn=(ft,inch)=>((Number(ft)||0)*12+(Number(inch)||0))*2.54;
+const ACTIVITY={sedentary:1.2,light:1.375,moderate:1.55,heavy:1.725,athlete:1.9};
+function mifflin({sex,kg,cm,age}){const s=sex==='male'?5:-161;return 10*kg+6.25*cm-5*age+s;}
+function inferGoal(currentLb,goalLb){const cut=currentLb*0.97,bulk=currentLb*1.03;return goalLb<=cut?'cut':goalLb>=bulk?'bulk':'maintain';}
+
+// === PROTEIN MODEL (combined 1+2+3) ===
+function baselineProt(goal){ if(goal==='cut')return 2.0; if(goal==='bulk')return 1.6; return 1.9; }
+function emphasisBump(emph){ if(emph==='high')return 0.2; if(emph==='very')return 0.5; return 0.0; }
+function dynamicProtAdd({sleepHours,sessionMin,sessionType,soreness,goal}){
+  let add=0;
+  if(sleepHours<7) add+=0.15;
+  if(sessionMin>=75 || ['hypertrophy','endurance','competition','power'].includes(sessionType)) add+=0.10;
+  if(soreness>=4) add+=0.10;
+  if(goal==='cut') add+=0.10;
+  return add;
+}
+function fatPerKgDefault(){ return 0.9; }
+const sleepBase=sex=>sex==='female'?8.5:7.8;
+
+const NKJV={courage:[
+{ref:'Joshua 1:9',txt:'Be strong and of good courage; do not be afraid, nor be dismayed; for the LORD your God is with you wherever you go.'},
+{ref:'Deuteronomy 31:6',txt:'Be strong and of good courage... He is the One who goes with you. He will not leave you nor forsake you.'},
+{ref:'Psalm 27:1',txt:'The LORD is my light and my salvation; whom shall I fear? The LORD is the strength of my life; of whom shall I be afraid?'}
+],focus:[
+{ref:'Colossians 3:23',txt:'Whatever you do, do it heartily, as to the Lord and not to men.'},
+{ref:'Philippians 3:14',txt:'I press toward the goal for the prize of the upward call of God in Christ Jesus.'},
+{ref:'Proverbs 4:25',txt:'Let your eyes look straight ahead, and your eyelids look right before you.'}
+],peace:[
+{ref:'Philippians 4:6–7',txt:'Be anxious for nothing... and the peace of God... will guard your hearts and minds through Christ Jesus.'},
+{ref:'John 14:27',txt:'Peace I leave with you, My peace I give to you... let not your heart be troubled, neither let it be afraid.'},
+{ref:'Isaiah 26:3',txt:'You will keep him in perfect peace, whose mind is stayed on You, because he trusts in You.'}
+],strength:[
+{ref:'Isaiah 40:31',txt:'Those who wait on the LORD shall renew their strength; they shall mount up with wings like eagles...'},
+{ref:'Psalm 18:32–33',txt:'It is God who arms me with strength, and makes my way perfect. He makes my feet like the feet of deer...'},
+{ref:'Habakkuk 3:19',txt:'The LORD God is my strength; He will make my feet like deer’s feet...'}],endurance:[
+{ref:'Hebrews 12:1–2',txt:'...let us run with endurance the race that is set before us, looking unto Jesus...'},
+{ref:'James 1:12',txt:'Blessed is the man who endures temptation; for when he has been approved, he will receive the crown of life...'},
+{ref:'Romans 5:3–4',txt:'Tribulation produces perseverance; and perseverance, character; and character, hope.'}
+],help:[
+{ref:'Psalm 46:1',txt:'God is our refuge and strength, a very present help in trouble.'},
+{ref:'Psalm 34:17',txt:'The righteous cry out, and the LORD hears, and delivers them out of all their troubles.'},
+{ref:'Isaiah 41:10',txt:'Fear not, for I am with you... I will strengthen you... I will uphold you with My righteous right hand.'}
+],hope:[
+{ref:'Lamentations 3:22–23',txt:'Through the LORD’s mercies we are not consumed... His compassions fail not. They are new every morning; great is Your faithfulness.'},
+{ref:'Romans 15:13',txt:'Now may the God of hope fill you with all joy and peace in believing...'},
+{ref:'Psalm 31:24',txt:'Be of good courage, and He shall strengthen your heart, all you who hope in the LORD.'}
+],recovery:[
+{ref:'Matthew 11:28–29',txt:'Come to Me, all you who labor and are heavy laden, and I will give you rest...'},
+{ref:'Psalm 23:1–3',txt:'The LORD is my shepherd... He restores my soul; He leads me in the paths of righteousness...'},
+{ref:'3 John 2',txt:'Beloved, I pray that you may prosper in all things and be in health, just as your soul prospers.'}
+],victory:[
+{ref:'1 Corinthians 9:24–25',txt:'Those who run in a race all run, but one receives the prize. Run in such a way that you may obtain it...'},
+{ref:'1 John 5:4',txt:'For whatever is born of God overcomes the world. And this is the victory that has overcome the world—our faith.'},
+{ref:'Romans 8:37',txt:'Yet in all these things we are more than conquerors through Him who loved us.'}
+]};
+
+const BREATH={downshift:[
+{title:'Physiological Sighs',detail:'Inhale through nose; top‑up sniff; long slow exhale. Repeat gently.',duration:'5–10 min'},
+{title:'Resonant (5.5 bpm)',detail:'Inhale 4–5 s, exhale 6–7 s. Nose only if possible.',duration:'5–10 min'},
+{title:'4‑7‑8',detail:'Inhale 4 s • Hold 7 s • Exhale 8 s.',duration:'4–8 min'}
+],focus:[
+{title:'Box Breathing',detail:'Inhale 4 s • Hold 4 s • Exhale 4 s • Hold 4 s.',duration:'3–5 min'},
+{title:'1:2 Ratio',detail:'Inhale 3 s • Exhale 6 s, keep shoulders relaxed.',duration:'3–6 min'},
+{title:'Tactical Breathing',detail:'Inhale 4 • Exhale 4, continuous for steady focus.',duration:'3–10 min'}
+]};
+
+const MEALS={breakfast:[
+'Greek yogurt + whey + berries + honey','Eggs + egg whites + sourdough + fruit','Overnight oats (milk) + chia + banana','Protein pancakes + peanut butter + blueberries','Cottage cheese bowl: pineapple + granola','Smoked salmon + eggs + potato + spinach'
+],lunch:[
+'Chicken rice bowl (olive oil) + veggies','Turkey sandwich + cheese + fruit','Tuna pasta salad + spinach','Beef burrito bowl + beans + salsa','Shrimp quinoa bowl + avocado','Lentil soup + whole grain toast + yogurt'
+],dinner:[
+'Salmon + potatoes + salad (olive oil)','Beef tacos (corn tortillas) + guac','Stir‑fry tofu/chicken + rice','Pork tenderloin + rice pilaf + green beans','Chicken parmesan + pasta + side salad','Turkey chili + rice + side veggies'
+],snack:[
+'Protein shake + banana','Cottage cheese + crackers','Trail mix (portion) + fruit','String cheese + apple + almonds','Greek yogurt + granola','Beef jerky + orange'
+]};
+
+const SELF_TALK={female:[
+'I am capable, composed, and powerful in my lane today.','My breath sets my rhythm; my rhythm sets my performance.','Strength and grace work together in me; I finish what I start.','I honor my body’s signals and choose the smartest effort.','Pressure reveals my poise. I execute with clarity.'
+],male:[
+'I bring calm focus and decisive action to every rep.','My training is precise; I do the hard things well.','I control my breathing, my tempo, and my outcome.','Discipline over mood — I execute the plan.','I finish strong: efficient, fast, and relentless.'
+]};
+
+const PRAYERS=[
+'Lord, grant me wisdom, steady breath, and strength to honor You in every choice today. Amen.',
+'Father, guide my steps, protect my mind from distraction, and help me serve others with joy. Amen.',
+'Jesus, shape my effort and attitude. Keep me humble in victory and teachable in struggle. Amen.',
+'God, quiet my anxiety, sharpen my focus, and fill me with courage to do what is right. Amen.',
+'Lord, thank You for this day. Help me to steward my body and gifts for Your glory. Amen.'
+];
+
+const $=id=>document.getElementById(id);
+const els={sex:$('sex'),age:$('age'),heightUS:$('heightUS'),heightFt:$('heightFt'),heightIn:$('heightIn'),heightMetric:$('heightMetric'),heightCm:$('heightCm'),weightUS:$('weightUS'),weightLb:$('weightLb'),goalWeightUS:$('goalWeightUS'),goalWeightLb:$('goalWeightLb'),weightMetric:$('weightMetric'),weightKg:$('weightKg'),goalWeightMetric:$('goalWeightMetric'),goalWeightKg:$('goalWeightKg'),activity:$('activity'),sleepLast:$('sleepLast'),sessionType:$('sessionType'),sessionMin:$('sessionMin'),cycleWrap:$('cycleWrap'),cycle:$('cycle'),protEmphasis:$('protEmphasis'),unitsBtn:$('unitsBtn'),exportBtn:$('exportBtn'),copyBtn:$('copyBtn'),ideasBtn:$('ideasBtn'),goalTag:$('goalTag'),bmr:$('bmr'),tdee:$('tdee'),target:$('target'),gP:$('gP'),gC:$('gC'),gF:$('gF'),protNotes:$('protNotes'),sleepNeed:$('sleepNeed'),sleepBreath:$('sleepBreath'),hBase:$('hBase'),hExtra:$('hExtra'),hTotal:$('hTotal'),hNa:$('hNa'),coldYesNo:$('coldYesNo'),coldTiming:$('coldTiming'),coldExtra:$('coldExtra'),coldTemp:$('coldTemp'),coldDur:$('coldDur'),coldWhy:$('coldWhy'),sumTarget:$('sumTarget'),sumPCF:$('sumPCF'),sumSleep:$('sumSleep'),sumCold:$('sumCold'),likertList:$('likertList'),ideas:$('ideas'),planBlocks:$('planBlocks'),readinessPill:$('readinessPill'),breathBlock:$('breathBlock'),scripture:$('scripture'),selfTalk:$('selfTalk'),prayer:$('prayer')};
+
+const QUESTIONS=[
+{id:'conf',label:'Confidence (1 = very low • 5 = very high)'},
+{id:'focus',label:'Focus on task (1 = scattered • 5 = locked in)'},
+{id:'motivation',label:'Motivation to train (1 = none • 5 = high)'},
+{id:'stress',label:'Stress (1 = none • 5 = very high; reverse‑scored)',reverse:true},
+{id:'mood',label:'Mood (1 = poor • 5 = great)'},
+{id:'anxiety',label:'Performance anxiety (1 = calm • 5 = severe; reverse‑scored)',reverse:true},
+{id:'readiness',label:'Overall readiness (1 = low • 5 = high)'},
+{id:'soreness',label:'Soreness (1 = none • 5 = severe; reverse‑scored)',reverse:true},
+{id:'fatigue',label:'Fatigue (1 = fresh • 5 = exhausted; reverse‑scored)',reverse:true},
+{id:'selftalk',label:'Self‑talk quality (1 = negative • 5 = positive)'},
+{id:'purpose',label:'Clarity of goals (1 = unclear • 5 = crystal clear)'},
+{id:'distraction',label:'Distractions (1 = none • 5 = constant; reverse‑scored)',reverse:true},
+{id:'support',label:'Support from others (1 = none • 5 = strong)'},
+{id:'calm',label:'Calm under pressure (1 = shaky • 5 = steady)'},
+{id:'drive',label:'Drive to push (1 = off • 5 = on)'}
+];
+
+let units='us'; let answers={}; QUESTIONS.forEach(q=>answers[q.id]=3);
+
+function buildLikert(){els.likertList.innerHTML=''; QUESTIONS.forEach(q=>{const row=document.createElement('div');row.className='likert-row';const label=document.createElement('div');label.className='likert-label';label.textContent=q.label;const group=document.createElement('div');group.className='likert';[1,2,3,4,5].forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;if(answers[q.id]===v)b.classList.add('active');b.addEventListener('click',()=>{answers[q.id]=v;buildLikert();compute();saveState();});group.appendChild(b);});row.appendChild(label);row.appendChild(group);els.likertList.appendChild(row);});}
+
+function coldPlungePlanner({sex,goal,sessionType,readiness,soreness,cycle}){const rec={recommend:false,rationale:'',timing:'',tempC:10,tempF:50,durationMin:0};const lowReadiness=readiness<3,highSoreness=soreness>=4,growth=(goal==='bulk'||sessionType==='hypertrophy');if(growth){rec.recommend=highSoreness||lowReadiness;rec.rationale='Growth focus: avoid immediate post‑lift cold; use only for soreness/fatigue.';rec.timing='If used: 6–12+ h after lifting or next morning.';rec.durationMin=rec.recommend?6:0;}else if(['competition','endurance','power'].includes(sessionType)){rec.recommend=true;rec.rationale='Recovery/turnaround focus.';rec.timing='Within 0–60 min post‑session or later in day.';rec.durationMin=6;}else if(sessionType==='recovery'){rec.recommend=true;rec.rationale='Recovery day; short, moderate cold.';rec.timing='Any time, earlier in day.';rec.durationMin=5;}if(sex==='female'&&cycle==='luteal'){rec.tempC=12;rec.tempF=54;if(rec.durationMin>0)rec.durationMin=Math.max(4,rec.durationMin-1);rec.rationale+=' Luteal: slightly warmer/shorter.';}if(!rec.recommend)rec.durationMin=0;return rec;}
+
+function breathingPlanner({stress,anxiety,readiness,sleepDebt}){const needDown=(readiness<3||stress>=4||anxiety>=4||sleepDebt>1);const bagKey='breath-'+todayKey+'-'+(needDown?'down':'focus');const picks=nonRepeatingPick(bagKey,needDown?BREATH.downshift:BREATH.focus,2);const focus=needDown?'Downshift':'Up‑regulate / Focus';return{focus,items:picks};}
+
+function scripturePlanner(ctx){const picks=[];const add=(theme,count)=>{if(!NKJV[theme])return;const key='script-'+todayKey+'-'+theme;picks.push(...nonRepeatingPick(key,NKJV[theme],count));};const {stress,anxiety,moodLow,confidenceLow,distractionHigh,supportLow,driveLow,readinessHigh,competitionDay,recoveryDay,purposeLow,calmLow,fatigueHigh}=ctx;if(competitionDay)add('victory',1);if(readinessHigh)add('strength',1);if(confidenceLow)add('courage',1);if(stress||anxiety)add('peace',1);if(moodLow||fatigueHigh)add('recovery',1);if(purposeLow||distractionHigh)add('focus',1);if(supportLow)add('help',1);if(driveLow)add('endurance',1);if(!picks.length)add('hope',1);return picks.slice(0,4);}
+
+function dayPlan({goal,sessionType,readiness,soreness,sleepDebt}){const blocks=[];if(readiness<2.5||sleepDebt>1.5){blocks.push({label:'Training',text:'Easy day: technique + mobility + Zone 2 (20–30 min). Optional light accessories.'});}else if(soreness>=4){blocks.push({label:'Training',text:'Reduce volume 25–40%. Keep intensity moderate. Emphasize long rest and form.'});}else{let txt='Proceed as planned.';if(goal==='cut'&&sessionType==='hypertrophy')txt='Quality reps; 8–15 reps; avoid failure on first sets.';if(goal==='bulk'&&sessionType==='hypertrophy')txt='Add a back‑off set or +5–10% accessory volume.';if(sessionType==='endurance')txt='Main set steady; finish with 4–6 strides.';if(sessionType==='power')txt='Full recovery between sets; crisp, fast reps.';if(sessionType==='recovery')txt='Mobility, easy aerobic 15–30 min, light tissue work.';if(sessionType==='competition')txt='Warm‑up progression + taper volume; post‑comp refuel and brief cold if desired.';blocks.push({label:'Training',text:txt});}
+if(goal==='cut')blocks.push({label:'Nutrition',text:'Front‑load protein (≥30–40 g breakfast). Distribute protein 3–5 meals. Carbs near training.'}); else if(goal==='bulk')blocks.push({label:'Nutrition',text:'Add one carb feeding around training. Ensure +300 kcal and ≥1.6 g/kg protein.'}); else blocks.push({label:'Nutrition',text:'Even protein distribution. Carbs pre/post‑session. Fats moderate.'});
+if(readiness<3||soreness>=4)blocks.push({label:'Recovery',text:'10–20 min gentle mobility; optional cold per guidance; 10 min breathing; evening walk.'}); else blocks.push({label:'Recovery',text:'5–10 min mobility and cooldown. Walk after dinner.'});
+if(sleepDebt>0.5)blocks.push({label:'Sleep',text:'Earlier wind‑down tonight. Optional 20 min nap before 3 pm.'}); else blocks.push({label:'Sleep',text:'Consistent schedule; protect 90‑min pre‑bed routine.'});
+return blocks;}
+
+function renderMealIdeas(p,c,f){const P=Math.max(0,Math.round(p*0.93));const C=Math.max(0,Math.round(c*0.93));const F=Math.max(0,Math.round(f*0.93));
+const part=(pp,cc,ff,r)=>({P:Math.round(pp*r),C:Math.round(cc*r),F:Math.round(ff*r)});const B=part(P,C,F,.25),L=part(P,C,F,.30),D=part(P,C,F,.35),S=part(P,C,F,.10);
+const picks={breakfast:nonRepeatingPick('meal-breakfast-'+todayKey,MEALS.breakfast,2),lunch:nonRepeatingPick('meal-lunch-'+todayKey,MEALS.lunch,2),dinner:nonRepeatingPick('meal-dinner-'+todayKey,MEALS.dinner,2),snack:nonRepeatingPick('meal-snack-'+todayKey,MEALS.snack,2)};
+const sections=[{t:'Breakfast',m:B,list:picks.breakfast},{t:'Lunch',m:L,list:picks.lunch},{t:'Dinner',m:D,list:picks.dinner},{t:'Snack',m:S,list:picks.snack}];
+els.ideas.innerHTML=''; sections.forEach(sec=>{const box=document.createElement('div');box.className='likert-row';box.style.marginBottom='8px';const h=document.createElement('div');h.textContent=sec.t;h.style.marginBottom='4px';const t=document.createElement('div');t.style.color='#2b2b2b';t.style.fontSize='13px';t.textContent=`Target ≈ P${sec.m.P}/C${sec.m.C}/F${sec.m.F} g`;const ul=document.createElement('ul');sec.list.forEach(it=>{const li=document.createElement('li');li.textContent=it;ul.appendChild(li);});box.appendChild(h);box.appendChild(t);box.appendChild(ul);els.ideas.appendChild(box);});
+els.ideas.classList.remove('hide');}
+
+function renderSelfTalk(sex){const pool=sex==='female'?SELF_TALK.female:SELF_TALK.male;const lines=nonRepeatingPick('selftalk-'+todayKey+'-'+sex,pool,2);els.selfTalk.innerHTML=`<ul>${lines.map(x=>`<li>${x}</li>`).join('')}</ul>`;}
+function renderPrayer(){const [p]=nonRepeatingPick('prayer-'+todayKey,PRAYERS,1);els.prayer.textContent=p;}
+
+function toGal(l){return (l*0.264172).toFixed(2);}
+function compute(){
+  const norm=QUESTIONS.map(q=>{const raw=Number(answers[q.id]||3);return q.reverse?6-raw:raw;});
+  const avg=norm.reduce((a,b)=>a+b,0)/norm.length;
+  const sorenessRaw=Number(answers['soreness']||3);
+  const stressRaw=Number(answers['stress']?6-answers['stress']:3);
+  const anxietyRaw=Number(answers['anxiety']?6-answers['anxiety']:3);
+  const confidenceRaw=Number(answers['conf']||3);
+  const moodRaw=Number(answers['mood']||3);
+  const distractionRaw=Number(answers['distraction']?6-answers['distraction']:3);
+  const supportRaw=Number(answers['support']||3);
+  const driveRaw=Number(answers['drive']||3);
+  const purposeRaw=Number(answers['purpose']||3);
+  const calmRaw=Number(answers['calm']||3);
+  const fatigueRaw=Number(answers['fatigue']?6-answers['fatigue']:3);
+
+  const sex=els.sex.value; const age=Number(els.age.value)||0;
+  const kg=(units==='metric')?(Number(els.weightKg.value)||0):kgFromLbs(Number(els.weightLb.value)||0);
+  const cm=(units==='metric')?(Number(els.heightCm.value)||0):cmFromFtIn(Number(els.heightFt.value)||0,Number(els.heightIn.value)||0);
+  const currentLb=(units==='metric')?lbsFromKg(Number(els.weightKg.value)||0):(Number(els.weightLb.value)||0);
+  const goalLb=(units==='metric')?lbsFromKg(Number(els.goalWeightKg.value)||0):(Number(els.goalWeightLb.value)||0);
+  const activity=ACTIVITY[els.activity.value]||1.55;
+  const sessionType=els.sessionType.value;
+  const sessionMinutes=Number(els.sessionMin.value)||0;
+  const cycle=els.cycle.value;
+  const emph=els.protEmphasis.value;
+
+  const goal=inferGoal(currentLb,goalLb); els.goalTag.textContent=goal.toUpperCase();
+  const bmr=Math.round(mifflin({sex,kg,cm,age})); const tdee=Math.round(bmr*activity);
+  const delta=goal==='cut'?-400:goal==='bulk'?300:0; const target=Math.max(1200,tdee+delta);
+
+  // Protein g/kg = baseline + emphasis bump + dynamic add; cap 2.7
+  let gPerKg = baselineProt(goal) + emphasisBump(emph) + dynamicProtAdd({sleepHours:Number(els.sleepLast.value)||0,sessionMin:sessionMinutes,sessionType,soreness:sorenessRaw,goal});
+  gPerKg = Math.min(2.7, gPerKg);
+  const gP=Math.round(gPerKg*kg);
+
+  const gF=Math.round(fatPerKgDefault()*kg);
+  const gC=Math.round(Math.max(0,(target-gP*4-gF*9)/4));
+
+  els.bmr.textContent=bmr+' kcal'; els.tdee.textContent=tdee+' kcal'; els.target.textContent=target+' kcal';
+  els.gP.textContent=gP+'g'; els.gF.textContent=gF+'g'; els.gC.textContent=gC+'g';
+
+  const parts=[]; parts.push(`Baseline ${baselineProt(goal).toFixed(1)} g/kg`);
+  if(emphasisBump(emph)>0) parts.push(`Emphasis +${emphasisBump(emph).toFixed(2)} g/kg`);
+  const dyn=dynamicProtAdd({sleepHours:Number(els.sleepLast.value)||0,sessionMin:sessionMinutes,sessionType,soreness:sorenessRaw,goal});
+  if(dyn>0) parts.push(`Dynamic +${dyn.toFixed(2)} g/kg`);
+  parts.push(`Capped at 2.7 g/kg`);
+  els.protNotes.textContent = 'Protein model: ' + parts.join(' • ');
+
+  let need=sleepBase(sex); if((Number(els.sleepLast.value)||0)<7)need+=0.5; if(avg<3)need+=0.3; if(['hypertrophy','competition'].includes(sessionType))need+=0.3; if(sex==='female'&&cycle==='luteal')need+=0.3;
+  need=clamp(Number(need.toFixed(1)),7.0,9.5); els.sleepNeed.textContent=need.toFixed(1);
+  const sleepDebt=Math.max(0,8-(Number(els.sleepLast.value)||0));
+
+  const baselineL=(35*kg)/1000; const sessionH=sessionMinutes/60;
+  const extraPerHour=['endurance','competition','power'].includes(sessionType)?0.75:(sessionType==='recovery'?0.25:0.5);
+  const extraL=Math.max(0,sessionH*extraPerHour); const totalL=baselineL+extraL;
+  const sodium=['endurance','competition','power'].includes(sessionType)?'1–2 g':'0.5–1 g';
+  const toGal=l=>(l*0.264172).toFixed(2);
+
+  $('hBase').textContent=toGal(baselineL)+' gal'; $('hExtra').textContent=toGal(extraL)+' gal'; $('hTotal').textContent=toGal(totalL)+' gal'; $('hNa').textContent=sodium;
+
+  const cp=coldPlungePlanner({sex,goal,sessionType,readiness:avg,soreness:sorenessRaw,cycle:(sex==='female'?cycle:'na')});
+  $('coldYesNo').textContent=cp.recommend?'Yes':'No'; $('coldTiming').textContent=cp.timing||'—';
+  if(cp.recommend){$('coldExtra').classList.remove('hide'); $('coldTemp').textContent=`${cp.tempC}°C / ${cp.tempF}°F`; $('coldDur').textContent=`${cp.durationMin} min`;} else {$('coldExtra').classList.add('hide');}
+  $('coldWhy').textContent=cp.rationale||'';
+
+  const label=avg>=4?'High':avg>=3?'Moderate':'Low'; $('readinessPill').textContent=`Readiness ${label} (${avg.toFixed(1)}/5)`;
+
+  const plan=dayPlan({goal,sessionType,readiness:avg,soreness:sorenessRaw,sleepDebt}); $('planBlocks').innerHTML='';
+  plan.forEach(b=>{const item=document.createElement('div');item.className='likert-row';item.style.marginBottom='8px';item.innerHTML=`<div style="font-size:12px;color:#2b2b2b;text-transform:uppercase;letter-spacing:.02em;margin-bottom:4px;">${b.label}</div><div>${b.text}</div>`;$('planBlocks').appendChild(item);});
+
+  const breath=breathingPlanner({stress:stressRaw,anxiety:anxietyRaw,readiness:avg,sleepDebt});
+  $('breathBlock').innerHTML=`<div style="margin-bottom:6px;"><span class="pill">Focus: ${breath.focus}</span></div><ol>${breath.items.map(x=>`<li><b>${x.title}:</b> ${x.detail} <span style="color:#2b2b2b;">(${x.duration})</span></li>`).join('')}</ol>`;
+  $('sleepBreath').textContent=breath.focus==='Downshift'?'Resonant breathing 5–10 min':'1:2 focus exhales 3–5 min';
+
+  const scriptureList=scripturePlanner({stress:stressRaw>=4,anxiety:anxietyRaw>=4,moodLow:moodRaw<=2,confidenceLow:confidenceRaw<=2,distractionHigh:distractionRaw>=4,supportLow:supportRaw<=2,driveLow:driveRaw<=2,readinessHigh:avg>=4,competitionDay:sessionType==='competition',recoveryDay:sessionType==='recovery',purposeLow:purposeRaw<=2,calmLow:calmRaw<=2,fatigueHigh:fatigueRaw>=4});
+  $('scripture').innerHTML=scriptureList.map(v=>`<div class="verse"><div><b>${v.ref}</b></div><div>${v.txt}</div></div>`).join('');
+
+  $('sumTarget').textContent=target+' kcal'; $('sumPCF').textContent=`${gP}/${gC}/${gF} g`; $('sumSleep').textContent=need.toFixed(1)+' h'; $('sumCold').textContent=cp.recommend?'Yes':'No';
+
+  renderSelfTalk(sex); renderPrayer();
+}
+
+function mealIdeasFromCurrent(){const p=parseInt($('gP').textContent)||0; const c=parseInt($('gC').textContent)||0; const f=parseInt($('gF').textContent)||0; renderMealIdeas(p,c,f);}
+
+function saveState(){const s={sex:$('sex').value,age:$('age').value,heightFt:$('heightFt').value,heightIn:$('heightIn').value,heightCm:$('heightCm').value,weightLb:$('weightLb').value,goalWeightLb:$('goalWeightLb').value,weightKg:$('weightKg').value,goalWeightKg:$('goalWeightKg').value,activity:$('activity').value,sleepLast:$('sleepLast').value,sessionType:$('sessionType').value,sessionMin:$('sessionMin').value,cycle:$('cycle').value,protEmphasis:$('protEmphasis').value,units,answers,savedDate:todayKey}; try{localStorage.setItem('athletePlannerClassic',JSON.stringify(s));}catch{}}
+function loadState(){try{const raw=localStorage.getItem('athletePlannerClassic'); if(!raw)return; const s=JSON.parse(raw)||{}; $('sex').value=s.sex||'female'; $('age').value=s.age||24; $('heightFt').value=s.heightFt||5; $('heightIn').value=s.heightIn||6; $('heightCm').value=s.heightCm||167.6; $('weightLb').value=s.weightLb||150; $('goalWeightLb').value=s.goalWeightLb||145; $('weightKg').value=s.weightKg||68; $('goalWeightKg').value=s.goalWeightKg||65.8; $('activity').value=s.activity||'moderate'; $('sleepLast').value=s.sleepLast||7; $('sessionType').value=s.sessionType||'hypertrophy'; $('sessionMin').value=s.sessionMin||60; $('cycle').value=s.cycle||'follicular'; $('protEmphasis').value=s.protEmphasis||'normal'; units=s.units||'us'; answers=s.answers||answers; }catch{}}
+function showUnits(){const us=units==='us'; $('heightUS').classList.toggle('hide',!us); $('heightMetric').classList.toggle('hide',us); $('weightUS').classList.toggle('hide',!us); $('goalWeightUS').classList.toggle('hide',!us); $('weightMetric').classList.toggle('hide',us); $('goalWeightMetric').classList.toggle('hide',us); $('unitsBtn').textContent=us?'Metric':'US';}
+function convertToMetric(){const ft=Number($('heightFt').value)||0,inch=Number($('heightIn').value)||0; $('heightCm').value=(cmFromFtIn(ft,inch)).toFixed(1); $('weightKg').value=(kgFromLbs(Number($('weightLb').value)||0)).toFixed(1); $('goalWeightKg').value=(kgFromLbs(Number($('goalWeightLb').value)||0)).toFixed(1);}
+function convertToUS(){const cm=Number($('heightCm').value)||0; const totalIn=cm/2.54; const ft=Math.floor(totalIn/12); const inch=Math.round(totalIn-ft*12); $('heightFt').value=ft; $('heightIn').value=inch; $('weightLb').value=(lbsFromKg(Number($('weightKg').value)||0)).toFixed(0); $('goalWeightLb').value=(lbsFromKg(Number($('goalWeightKg').value)||0)).toFixed(0);}
+['sex','age','heightFt','heightIn','heightCm','weightLb','goalWeightLb','weightKg','goalWeightKg','activity','sleepLast','sessionType','sessionMin','cycle','protEmphasis'].forEach(id=>{const el=$(id); if(!el)return; el.addEventListener('input',()=>{compute();saveState(); if(id==='sex')toggleCycle();}); el.addEventListener('change',()=>{compute();saveState(); if(id==='sex')toggleCycle();});});
+function toggleCycle(){ $('cycleWrap').style.display=($('sex').value==='female')?'grid':'none';}
+$('unitsBtn').addEventListener('click',()=>{if(units==='us'){convertToMetric();units='metric';}else{convertToUS();units='us';}showUnits();compute();saveState();});
+$('exportBtn').addEventListener('click',()=>window.print());
+$('copyBtn').addEventListener('click',async()=>{const text=`Target: ${$('sumTarget').textContent}
+P/C/F: ${$('sumPCF').textContent}
+Sleep: ${$('sumSleep').textContent}
+Cold plunge: ${$('sumCold').textContent}
+Hydration: ${$('hTotal').textContent} (baseline ${$('hBase').textContent}, extra ${$('hExtra').textContent}); Sodium: ${$('hNa').textContent}
+Protein: ${$('gP').textContent} (see: ${$('protNotes').textContent})`; try{await navigator.clipboard.writeText(text); $('copyBtn').textContent='Copied ✔'; setTimeout(()=>$('copyBtn').textContent='Copy Plan',1200);}catch{}});
+$('ideasBtn').addEventListener('click', mealIdeasFromCurrent);
+(function init(){try{const raw=localStorage.getItem('athletePlannerClassic'); if(raw)loadState();}catch{} buildLikert(); showUnits(); toggleCycle(); compute();})();
+</script>
+</body>
+</html>
