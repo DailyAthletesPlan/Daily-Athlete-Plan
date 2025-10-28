@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Daily Athlete Plan — VO2 Guaranteed (PWA)</title>
+<meta name="theme-color" content="#000000" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Daily Athlete Plan" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='white'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Times New Roman' font-size='140' font-weight='700'%3ED%3C/text%3E%3C/svg%3E" />
+<style>
+  :root { --text:#000; --muted:#2b2b2b; --soft:#e6e6e6; --bg:#fff; }
+  html, body { height:100%; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Times New Roman", Times, serif; color:var(--text); background:#fff; font-weight:700; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  .container { max-width:960px; margin:0 auto; padding:16px; min-height:100dvh; padding-bottom:144px; background:#fff; }
+  h1{font-size:28px;margin:0 0 6px;} h2{font-size:22px;margin:0 0 10px;} h3{font-size:20px;margin:0 0 8px;} p.muted{color:#2b2b2b;margin:0;font-size:15px;}
+  .card{background:#fff;border:1px solid #e6e6e6;border-radius:12px;padding:16px;margin-bottom:16px;}
+  .grid{display:grid;grid-gap:12px;} .grid-2{grid-template-columns:1fr 1fr;} .grid-3{grid-template-columns:1fr 1fr 1fr;} @media (max-width:760px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  label{display:block;font-size:13px;margin-bottom:6px;color:#2b2b2b;}
+  input,select,button,textarea{font-family:"Times New Roman", Times, serif;font-weight:700;color:#000;background:#fff;}
+  input[type="number"],input[type="text"],select,textarea{width:100%;border:1px solid #e6e6e6;border-radius:10px;padding:10px 12px;font-size:16px;outline:none;background:#fff;}
+  textarea{min-height:84px;resize:vertical;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .btn{border:1px solid #e6e6e6;border-radius:12px;padding:10px 14px;background:#fff;cursor:pointer;}
+  .btn:active{transform:translateY(1px);} .btn.primary{background:#000;color:#fff;border-color:#000;}
+  .likert-row{border:1px solid #e6e6e6;border-radius:10px;padding:12px;background:#fff;}
+  .likert-label{font-size:16px;margin-bottom:8px;white-space:normal;}
+  .likert{display:flex;gap:6px;flex-wrap:wrap;}
+  .likert button{width:44px;height:44px;border-radius:8px;border:1px solid #e6e6e6;background:#fff;font-size:16px;}
+  .likert button.active{background:#000;color:#fff;border-color:#000;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;} @media (max-width:560px){.kpi-grid{grid-template-columns:1fr 1fr;}}
+  .kpi{border:1px solid #e6e6e6;border-radius:12px;padding:12px;text-align:center;background:#fff;}
+  .kpi small{display:block;color:#2b2b2b;font-size:13px;margin-bottom:3px;}
+  .pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid #e6e6e6;color:#2b2b2b;background:#fff;}
+  .verse{border-left:3px solid #e6e6e6;padding-left:10px;background:#fff;}
+  .sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e6e6e6;padding:12px 16px;}
+  .sticky-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  @media (max-width:640px){.sticky-inner{grid-template-columns:1fr 1fr 1fr;}}
+  .sticky .block{display:flex;flex-direction:column;} .sticky small{color:#2b2b2b;}
+  .center-between{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .hide{display:none;} .mb-8{margin-bottom:8px;} ul{margin:0;padding-left:18px;}
+  .note{color:#2b2b2b;font-size:12px;}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="center-between mb-8">
+      <div>
+        <h1>Daily Athlete Plan — VO2 Guaranteed</h1>
+        <p class="muted">Gym-goers • Bodybuilders • Athletes • PWA • Offline • Installable</p>
+      </div>
+      <div class="row">
+        <button id="installBtn" class="btn primary hide" aria-label="Install app">Install App</button>
+        <button id="exportBtn" class="btn" aria-label="Print or share">Print / Share</button>
+        <button id="unitsBtn" class="btn" aria-label="Toggle units">Metric</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="center-between mb-8">
+        <h2>Profile</h2>
+        <span id="readinessPill" class="pill">Readiness —</span>
+      </div>
+      <div class="grid grid-3">
+        <div class="grid"><label for="sex">Sex</label><select id="sex"><option value="female">Female</option><option value="male">Male</option></select></div>
+        <div class="grid"><label for="age">Age (years)</label><input id="age" type="number" value="24" /></div>
+        <div class="grid"><label for="rhr">Resting HR (bpm)</label><input id="rhr" type="number" placeholder="Optional (50–75)" /></div>
+
+        <div class="grid" id="heightUS"><label>Height (ft / in)</label><div class="row"><input id="heightFt" type="number" placeholder="ft" value="5" /><input id="heightIn" type="number" placeholder="in" value="6" /></div></div>
+        <div class="grid hide" id="heightMetric"><label for="heightCm">Height (cm)</label><input id="heightCm" type="number" value="167.6" /></div>
+
+        <div class="grid" id="weightUS"><label for="weightLb">Weight (lbs)</label><input id="weightLb" type="number" value="150" /></div>
+        <div class="grid" id="goalWeightUS"><label for="goalWeightLb">Goal weight (lbs)</label><input id="goalWeightLb" type="number" value="145" /></div>
+
+        <div class="grid hide" id="weightMetric"><label for="weightKg">Weight (kg)</label><input id="weightKg" type="number" value="68" /></div>
+        <div class="grid hide" id="goalWeightMetric"><label for="goalWeightKg">Goal weight (kg)</label><input id="goalWeightKg" type="number" value="65.8" /></div>
+
+        <div class="grid"><label for="activity">Activity level</label><select id="activity"><option value="sedentary">Sedentary</option><option value="light">Light (1–3 d/wk)</option><option value="moderate" selected>Moderate (3–5 d/wk)</option><option value="heavy">Heavy (6–7 d/wk)</option><option value="athlete">Athlete / 2-a-days</option></select></div>
+        <div class="grid"><label for="sleepLast">Sleep last night (hours)</label><input id="sleepLast" type="number" step="0.1" value="7.0" /></div>
+        <div class="grid"><label for="sessionType">Today's focus</label><select id="sessionType"><option value="hypertrophy" selected>Hypertrophy / Strength</option><option value="power">Power / Sprint / Skill</option><option value="endurance">Endurance / Conditioning</option><option value="recovery">Recovery / Mobility</option><option value="competition">Competition</option></select></div>
+        <div class="grid"><label for="sessionMin">Session duration (min)</label><input id="sessionMin" type="number" value="60" /></div>
+        <div class="grid" id="cycleWrap"><label for="cycle">Menstrual cycle phase</label><select id="cycle"><option value="menstruation">Menstruation</option><option value="follicular" selected>Follicular</option><option value="ovulatory">Ovulatory</option><option value="luteal">Luteal</option></select><span class="note">(shown only if Sex = Female)</span></div>
+        <div class="grid">
+          <label for="protEmphasis">Protein Emphasis</label>
+          <select id="protEmphasis">
+            <option value="normal">Normal</option>
+            <option value="high" selected>High</option>
+            <option value="very">Very High</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;"><button id="copyBtn" class="btn">Copy Plan</button><button id="ideasBtn" class="btn">Meal Ideas</button></div>
+    </div>
+
+    <div class="card">
+      <h2>15-Question Mental Health Check-In (1 = Very Low • 5 = Very High)</h2>
+      <div id="likertList" style="max-height:460px;overflow:auto;"></div>
+      <p class="muted" style="margin-top:8px;">Reverse-scored: Stress, Anxiety, Soreness, Fatigue, Distractions.</p>
+    </div>
+
+    <div class="card"><h3>Today’s Plan</h3><div id="planBlocks"></div></div>
+
+    <div class="card">
+      <h3>Daily Macros (High-Protein Default)</h3>
+      <p class="muted">Goal from goal weight: <b id="goalTag">MAINTAIN</b></p>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">BMR</span><b id="bmr">— kcal</b></div>
+        <div class="grid"><span class="muted">TDEE</span><b id="tdee">— kcal</b></div>
+        <div class="grid"><span class="muted">Target kcal</span><b id="target">— kcal</b></div>
+        <div class="grid"><span class="muted">Protein g/kg (cap 2.7)</span><b id="protModel">— g/kg</b></div>
+      </div>
+      <div class="kpi-grid" style="margin-top:8px;">
+        <div class="kpi"><small>Protein</small><b id="gP">—g</b></div>
+        <div class="kpi"><small>Carbs</small><b id="gC">—g</b></div>
+        <div class="kpi"><small>Fats</small><b id="gF">—g</b></div>
+        <div class="kpi"><small>Fiber (min)</small><b id="gFiber">—g</b></div>
+      </div>
+      <div id="ideas" class="hide" style="margin-top:10px;"></div>
+      <p class="muted" style="margin-top:8px;" id="protNotes"></p>
+    </div>
+
+    <div class="card" id="cycleSuppCard">
+      <h3>Supplement Considerations (Women)</h3>
+      <div id="cycleSupp"></div>
+      <p class="note">Educational only. Not medical advice.</p>
+    </div>
+
+    <div class="card">
+      <h3>Cold Plunge</h3>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">Recommend</span><b id="coldYesNo">—</b></div>
+        <div class="grid"><span class="muted">Timing</span><b id="coldTiming">—</b></div>
+      </div>
+      <div id="coldExtra" class="grid hide" style="margin-top:6px;">
+        <div class="grid"><span class="muted">Temperature</span><b id="coldTemp"></b></div>
+        <div class="grid"><span class="muted">Duration</span><b id="coldDur"></b></div>
+      </div>
+      <div><span class="muted" id="coldWhy"></span></div>
+    </div>
+
+    <div class="card">
+      <h3>VO2 & Heart-Rate Zones</h3>
+      <p class="muted">Targets based on age, optional Resting HR, and today’s goal. Zone 2 uses %HRR (preferred) or %HRmax fallback.</p>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">HRmax (est.)</span><b id="hrMax">— bpm</b></div>
+        <div class="grid"><span class="muted">HRrest</span><b id="hrRest">— bpm</b></div>
+      </div>
+      <div class="grid grid-3" id="zoneTable"></div>
+      <div class="likert-row" id="zonePrescription"></div>
+    </div>
+
+    <div class="card">
+      <h3>VO2 Max Goal for Today</h3>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">Estimated VO2 max</span><b id="vo2max">— ml/kg/min</b></div>
+        <div class="grid"><span class="muted">Classification</span><b id="vo2class">—</b></div>
+      </div>
+      <div class="likert-row" id="vo2target"></div>
+      <p class="note" id="vo2note">VO2max uses HRmax and Resting HR. Enter Resting HR for accuracy.</p>
+    </div>
+
+    <div class="card">
+      <h3>Weekly Conditioning Targets</h3>
+      <div class="grid grid-3">
+        <div class="kpi"><small>Z2 minutes (goal)</small><b id="wkZ2Goal">—</b></div>
+        <div class="kpi"><small>Z5 minutes (goal)</small><b id="wkZ5Goal">—</b></div>
+        <div class="kpi"><small>Completed</small><b id="wkDone">—</b></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <button id="addZ2" class="btn">+5 min Z2</button>
+        <button id="addZ5" class="btn">+1 min Z5</button>
+        <button id="resetWeek" class="btn">Reset Week</button>
+      </div>
+      <p class="note">Progress saves on this device.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tonight’s Sleep</h3>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">Recommended duration</span><b style="font-size:28px;" id="sleepNeed">—</b><span class="muted">hours</span></div>
+        <div class="grid"><span class="muted">Pre-sleep wind-down</span><ul><li id="sleepBreath">5–10 min downshift breathing</li><li>90 min before bed: hot shower/bath</li><li>Limit screens & caffeine late</li></ul></div>
+      </div>
+      <div class="likert-row" id="sleepDeepDive"></div>
+    </div>
+
+    <div class="card">
+      <h3>Hydration & Electrolytes</h3>
+      <p class="muted">Gallons (gal). Baseline + session add-on.</p>
+      <div class="grid grid-2">
+        <div class="grid"><span class="muted">Baseline water</span><b id="hBase">— gal</b></div>
+        <div class="grid"><span class="muted">Session extra</span><b id="hExtra">— gal</b></div>
+        <div class="grid"><span class="muted">Total today</span><b id="hTotal">— gal</b></div>
+        <div class="grid"><span class="muted">Sodium target</span><b id="hNa">—</b></div>
+      </div>
+    </div>
+
+    <div class="card"><h3>Breathing Session</h3><div id="breathBlock"></div></div>
+    <div class="card"><h3>Self-Talk</h3><div id="selfTalk"></div></div>
+    <div class="card"><h3>Daily Prayer</h3><div id="prayer"></div></div>
+
+    <div class="card">
+      <h3>Scripture for Today (NKJV)</h3>
+      <div id="scripture" class="grid" style="grid-gap:10px;"></div>
+      <p class="muted">Themes adapt to your check-in. You can merge unlimited verses via <code>window.NKJV_EXTRA</code>.</p>
+    </div>
+  </div>
+
+  <div class="sticky" role="status" aria-live="polite">
+    <div class="sticky-inner">
+      <div class="block"><small>Target</small><b id="sumTarget">— kcal</b></div>
+      <div class="block"><small>P/C/F</small><b id="sumPCF">—/—/— g</b></div>
+      <div class="block"><small>Fiber</small><b id="sumFiber">— g</b></div>
+      <div class="block"><small>Sleep</small><b id="sumSleep">— h</b></div>
+      <div class="block"><small>Zone</small><b id="sumZone">—</b></div>
+      <div class="block"><small>VO2 Goal</small><b id="sumVo2">—</b></div>
+      <div class="block"><small>Week</small><b id="sumWeek">—</b></div>
+    </div>
+  </div>
+
+<script>
+(function setupPWA(){
+  const svg = size => `<?xml version="1.0"?><svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'><rect width='100%' height='100%' rx='${Math.round(size*0.22)}' fill='white'/><text x='50%' y='54%' font-family='Times New Roman' font-weight='700' font-size='${Math.round(size*0.62)}' text-anchor='middle'>D</text></svg>`;
+  const makeIcon = size => URL.createObjectURL(new Blob([svg(size)], { type: 'image/svg+xml' }));
+  const manifest = { name:'Daily Athlete Plan', short_name:'DAP', start_url:'.', display:'standalone', background_color:'#ffffff', theme_color:'#000000', icons:[ {src:makeIcon(192),sizes:'192x192',type:'image/svg+xml'}, {src:makeIcon(512),sizes:'512x512',type:'image/svg+xml'} ] };
+  const manifestURL = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type:'application/json' }));
+  const link=document.createElement('link'); link.rel='manifest'; link.href=manifestURL; document.head.appendChild(link);
+  if('serviceWorker' in navigator){
+    const swCode = `const CACHE='dap-vo2g-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll([self.registration.scope])).then(()=>self.skipWaiting()))});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim())});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).then(res=>{const cp=res.clone();caches.open(CACHE).then(c=>{if(e.request.method==='GET'&&new URL(e.request.url).origin===location.origin)c.put(e.request,cp);});return res;})))})`;
+    const swURL = URL.createObjectURL(new Blob([swCode], { type:'text/javascript' }));
+    navigator.serviceWorker.register(swURL).catch(()=>{});
+  }
+  let deferredPrompt=null; const installBtn=document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;installBtn.classList.remove('hide');});
+  installBtn?.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;installBtn.classList.add('hide');deferredPrompt=null;});
+})();
+</script>
+
+<script>
+const todayKey=new Date().toISOString().slice(0,10);
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const kgFromLbs=lbs=>lbs*0.45359237; const lbsFromKg=kg=>kg/0.45359237; const cmFromFtIn=(ft,inch)=>((Number(ft)||0)*12+(Number(inch)||0))*2.54;
+const ACTIVITY={sedentary:1.2,light:1.375,moderate:1.55,heavy:1.725,athlete:1.9};
+function mifflin({sex,kg,cm,age}){const s=sex==='male'?5:-161;return 10*kg+6.25*cm-5*age+s;}
+function inferGoal(currentLb,goalLb){const cut=currentLb*0.97,bulk=currentLb*1.03;return goalLb<=cut?'cut':goalLb>=bulk?'bulk':'maintain';}
+
+function getBag(key){try{const raw=localStorage.getItem(key);if(!raw)return{date:todayKey,used:[]};const o=JSON.parse(raw);if(!o||o.date!==todayKey)return{date:todayKey,used:[]};return o;}catch{return{date:todayKey,used:[]};}}
+function setBag(key,bag){try{localStorage.setItem(key,JSON.stringify(bag));}catch{}}
+function nonRepeatingPick(key,arr,count){const bag=getBag(key);let pool=arr.map((v,i)=>({v,i})).filter(x=>!bag.used.includes(x.i));if(pool.length<count){bag.used=[];setBag(key,bag);} const bag2=getBag(key);let pool2=arr.map((v,i)=>({v,i})).filter(x=>!bag2.used.includes(x.i));for(let i=pool2.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool2[i],pool2[j]]=[pool2[j],pool2[i]];}const picks=pool2.slice(0,count);picks.forEach(p=>bag2.used.push(p.i));setBag(key,bag2);return picks.map(p=>p.v);} 
+
+const NKJV_BASE={ focus:[{ref:'Col 3:23',txt:'Whatever you do, do it heartily, as to the Lord...'}], strength:[{ref:'Isa 40:31',txt:'Those who wait on the LORD shall renew their strength...'}] };
+const NKJV = NKJV_BASE;
+const BREATH={downshift:[{title:'Physiological Sighs',detail:'Two inhales, long exhale.',duration:'5–10 min'}], focus:[{title:'Box 4-4-4-4',detail:'In 4 • Hold 4 • Out 4 • Hold 4.',duration:'3–6 min'}]};
+const MEALS={breakfast:['Greek yogurt + whey'], lunch:['Chicken rice bowl'], dinner:['Salmon + potatoes'], snack:['Protein shake + banana']};
+const SELF_TALK={female:{boost:['I am capable, composed, and powerful.'],focus:['I aim my attention where it matters.'],calm:['Calm first, then fast.'],grit:['Discipline over mood — I execute.']}, male:{boost:['I do the hard things well.'],focus:['Laser on the next rep; nothing extra.'],calm:['My breath steadies my mind.'],grit:['Finish strong.']}};
+const PRAYERS=['Lord, grant me wisdom, steady breath, and strength today. Amen.'];
+
+const $=id=>document.getElementById(id);
+const els={sex:$("sex"),age:$("age"),rhr:$("rhr"),heightUS:$("heightUS"),heightFt:$("heightFt"),heightIn:$("heightIn"),heightMetric:$("heightMetric"),heightCm:$("heightCm"),weightUS:$("weightUS"),weightLb:$("weightLb"),goalWeightUS:$("goalWeightUS"),goalWeightLb:$("goalWeightLb"),weightMetric:$("weightMetric"),weightKg:$("weightKg"),goalWeightMetric:$("goalWeightMetric"),goalWeightKg:$("goalWeightKg"),activity:$("activity"),sleepLast:$("sleepLast"),sessionType:$("sessionType"),sessionMin:$("sessionMin"),cycleWrap:$("cycleWrap"),cycle:$("cycle"),protEmphasis:$("protEmphasis"),unitsBtn:$("unitsBtn"),exportBtn:$("exportBtn"),copyBtn:$("copyBtn"),ideasBtn:$("ideasBtn"),goalTag:$("goalTag"),bmr:$("bmr"),tdee:$("tdee"),target:$("target"),protModel:$("protModel"),gP:$("gP"),gC:$("gC"),gF:$("gF"),gFiber:$("gFiber"),protNotes:$("protNotes"),sleepNeed:$("sleepNeed"),sleepBreath:$("sleepBreath"),hBase:$("hBase"),hExtra:$("hExtra"),hTotal:$("hTotal"),hNa:$("hNa"),coldYesNo:$("coldYesNo"),coldTiming:$("coldTiming"),coldExtra:$("coldExtra"),coldTemp:$("coldTemp"),coldDur:$("coldDur"),coldWhy:$("coldWhy"),sumTarget:$("sumTarget"),sumPCF:$("sumPCF"),sumFiber:$("sumFiber"),sumSleep:$("sumSleep"),sumZone:$("sumZone"),sumVo2:$("sumVo2"),sumWeek:$("sumWeek"),likertList:$("likertList"),ideas:$("ideas"),planBlocks:$("planBlocks"),readinessPill:$("readinessPill"),breathBlock:$("breathBlock"),scripture:$("scripture"),selfTalk:$("selfTalk"),prayer:$("prayer"),hrMax:$("hrMax"),hrRest:$("hrRest"),zoneTable:$("zoneTable"),zonePrescription:$("zonePrescription"),vo2max:$("vo2max"),vo2class:$("vo2class"),vo2target:$("vo2target"),vo2note:$("vo2note"),wkZ2Goal:$("wkZ2Goal"),wkZ5Goal:$("wkZ5Goal"),wkDone:$("wkDone"),addZ2:$("addZ2"),addZ5:$("addZ5"),resetWeek:$("resetWeek") };
+
+const QUESTIONS=[{id:'conf',label:'Confidence (1–5)'},{id:'focus',label:'Focus on task (1–5)'},{id:'motivation',label:'Motivation (1–5)'},{id:'stress',label:'Stress (reverse; 1–5)',reverse:true},{id:'mood',label:'Mood (1–5)'}];
+let units='us'; let answers={}; QUESTIONS.forEach(q=>answers[q.id]=3);
+
+const sleepBase=sex=>sex==='female'?8.5:7.8;
+function baselineProt(goal){ return goal==='cut'?2.1 : goal==='bulk'?1.8 : 2.0; }
+function emphasisBump(emph){ return emph==='very'?0.5 : emph==='high'?0.25 : 0.0; }
+function dynamicProtAdd({sleepHours,sessionMin,sessionType}){ let add=0; if(sleepHours<7) add+=0.15; if(sessionMin>=75||['hypertrophy','endurance','competition','power'].includes(sessionType)) add+=0.10; return add; }
+function fatPerKgDefault(){ return 0.9; }
+
+function estHRmax(age){ return Math.round(208 - 0.7*age); }
+function estVO2max(HRmax, HRrest){ return 15.3 * (HRmax / HRrest); }
+function vo2Class(sex,age,vo2){ if(!vo2) return '—'; const bands = sex==='male'? [ {t:'Excellent',min:55},{t:'Good',min:47},{t:'Average',min:40},{t:'Below Avg',min:0} ] : [ {t:'Excellent',min:50},{t:'Good',min:43},{t:'Average',min:36},{t:'Below Avg',min:0} ]; for(const b of bands) if(vo2>=b.min) return b.t; return '—'; }
+function zonesFromHR(age,rhr){ const HRmax=estHRmax(age); const useHRR = !!rhr && rhr>30 && rhr<110; const r = (pct)=> useHRR? Math.round(((HRmax - rhr)*pct + rhr)) : Math.round(HRmax*pct); const Z={ Z1:[r(0.5), r(0.6)], Z2:[r(0.6), r(0.7)], Z3:[r(0.7), r(0.8)], Z4:[r(0.8), r(0.9)], Z5:[r(0.9), r(1.0)] }; return {HRmax, useHRR, Z}; }
+function getWeekKey(){ const now=new Date(); const y=now.getFullYear(); const first=new Date(y,0,1); const days=Math.floor((now-first)/86400000); const week=Math.ceil((days+first.getDay()+1)/7); return y+'-W'+week; }
+function loadWeek(){ try{const raw=localStorage.getItem('dapWeek'); if(!raw) return {key:getWeekKey(), z2:0, z5:0}; const o=JSON.parse(raw)||{}; if(o.key!==getWeekKey()) return {key:getWeekKey(), z2:0, z5:0}; return o;}catch{return {key:getWeekKey(), z2:0, z5:0};} }
+function saveWeek(o){ try{localStorage.setItem('dapWeek', JSON.stringify(o));}catch{} }
+function weekGoals(activity, sessionType){ let z2=150, z5=10; if(activity==='light'){ z2=90; z5=6; } if(activity==='heavy'){ z2=180; z5=12; } if(activity==='athlete'){ z2=210; z5=15; } if(sessionType==='endurance') z2+=30; if(sessionType==='power') z5+=3; return {z2,z5}; }
+
+function buildLikert(){ els.likertList.innerHTML=''; [{id:'conf',label:'Confidence (1 = very low • 5 = very high)'},{id:'focus',label:'Focus on task (1 = scattered • 5 = locked in)'},
+{id:'motivation',label:'Motivation to train (1 = none • 5 = high)'},{id:'stress',label:'Stress (1 = none • 5 = very high; reverse-scored)',reverse:true},{id:'mood',label:'Mood (1 = poor • 5 = great)'}].forEach(q=>{
+  const row=document.createElement('div'); row.className='likert-row'; const label=document.createElement('div'); label.className='likert-label'; label.textContent=q.label; const group=document.createElement('div'); group.className='likert'; [1,2,3,4,5].forEach(v=>{ const b=document.createElement('button'); b.type='button'; b.textContent=v; b.setAttribute('aria-pressed', (answers[q.id]===v) ? 'true' : 'false'); if(answers[q.id]===v) b.classList.add('active'); b.addEventListener('click',()=>{ answers[q.id]=v; buildLikert(); compute(); saveState(); }); group.appendChild(b); }); row.appendChild(label); row.appendChild(group); els.likertList.appendChild(row); });
+}
+
+function compute(){
+  const norm=[answers.conf,answers.focus,answers.motivation,6-(answers.stress||3),(answers.mood||3)];
+  const avg=norm.reduce((a,b)=>a+b,0)/norm.length;
+
+  const sex=els.sex.value; const age=Number(els.age.value)||0; const rhrRaw=els.rhr.value.trim(); const rhr = rhrRaw ? Number(rhrRaw) : null;
+  const kg=(units==='metric')?(Number(els.weightKg.value)||0):kgFromLbs(Number(els.weightLb.value)||0);
+  const cm=(units==='metric')?(Number(els.heightCm.value)||0):cmFromFtIn(Number(els.heightFt.value)||0,Number(els.heightIn.value)||0);
+  const currentLb=(units==='metric')?lbsFromKg(Number(els.weightKg.value)||0):(Number(els.weightLb.value)||0);
+  const goalLb=(units==='metric')?lbsFromKg(Number(els.goalWeightKg.value)||0):(Number(els.goalWeightLb.value)||0);
+  const activity=els.activity.value||'moderate'; const activityFactor=ACTIVITY[activity];
+  const sessionType=els.sessionType.value; const sessionMinutes=Number(els.sessionMin.value)||0; const cycle=els.cycle.value; const emph=els.protEmphasis.value;
+
+  const goal=inferGoal(currentLb,goalLb); els.goalTag.textContent=goal.toUpperCase();
+  const bmr=Math.round(mifflin({sex,kg,cm,age})); const tdee=Math.round(bmr*activityFactor);
+  const delta=goal==='cut'?-400:goal==='bulk'?350:0; const target=Math.max(1200,tdee+delta);
+
+  let gPerKg = Math.min(2.7, baselineProt(goal) + emphasisBump(emph) + dynamicProtAdd({sleepHours:Number(els.sleepLast.value)||0,sessionMin:sessionMinutes,sessionType}));
+  const gP=Math.round(gPerKg*kg), gF=Math.round(0.9*kg), gC=Math.round(Math.max(0,(target-gP*4-gF*9)/4)), gFiber=Math.max(25, Math.round(kg*0.3));
+
+  els.bmr.textContent=bmr+' kcal'; els.tdee.textContent=tdee+' kcal'; els.target.textContent=target+' kcal';
+  els.protModel.textContent=gPerKg.toFixed(2)+' g/kg';
+  els.gP.textContent=gP+'g'; els.gF.textContent=gF+'g'; els.gC.textContent=gC+'g'; els.gFiber.textContent=gFiber+'g';
+
+  // Hydration
+  const baselineL=(35*kg)/1000; const extraL=(sessionMinutes/60) * (['endurance','competition','power'].includes(sessionType)?0.75:(sessionType==='recovery'?0.25:0.5)); const totalL=baselineL+extraL;
+  const sodium=['endurance','competition','power'].includes(sessionType)?'1–2 g':'0.5–1 g';
+  const toGal=l=>(l*0.264172).toFixed(2);
+  els.hBase.textContent=toGal(baselineL)+' gal'; els.hExtra.textContent=toGal(extraL)+' gal'; els.hTotal.textContent=toGal(totalL)+' gal'; els.hNa.textContent=sodium;
+
+  // Zones & VO2 (guaranteed display with fallback RHR)
+  const HRmax=Math.round(208 - 0.7*age);
+  els.hrMax.textContent=HRmax?HRmax+' bpm':'—';
+  els.hrRest.textContent=rhr? rhr+' bpm' : '—';
+  const useHRR = !!rhr && rhr>30 && rhr<110;
+  const r = (pct)=> useHRR? Math.round(((HRmax - (rhr||70))*pct + (rhr||70))) : Math.round(HRmax*pct);
+  const Z={ Z1:[r(0.5), r(0.6)], Z2:[r(0.6), r(0.7)], Z3:[r(0.7), r(0.8)], Z4:[r(0.8), r(0.9)], Z5:[r(0.9), r(1.0)] };
+  els.zoneTable.innerHTML = Object.entries(Z).map(([k,range])=>`<div class="kpi"><small>${k}</small><b>${range[0]}–${range[1]} bpm</b></div>`).join('');
+  const rx=(function(){ if(sessionType==='endurance') return {zone:'Z2',dur:'30–45 min (build 60–90)',note:'Steady conversational pace.'}; if(sessionType==='power') return {zone:'Z5 intervals',dur:'6–10 min total',note:'Short reps, full recovery.'}; if(sessionType==='recovery') return {zone:'Z1–Z2',dur:'20–30 min',note:'Relaxed nasal breathing.'}; if(sessionType==='competition') return {zone:'Z1–Z2 + warm-ups',dur:'As sport-specific',note:'Keep legs fresh.'}; return {zone:'Z1–Z2',dur:'15–20 min',note:'Warm-up / cool-down support.'}; })();
+  els.zonePrescription.innerHTML=`<div><span class="pill">${rx.zone}</span> — ${rx.dur}<div class="note">${rx.note}</div></div>`;
+  els.sumZone.textContent=rx.zone;
+
+  const fallbackRHR = rhr || 70;
+  const vo2 = 15.3 * (HRmax / fallbackRHR);
+  const vo2class = (function(sex,vo2){ const bands = sex==='male'? [ {t:'Excellent',min:55},{t:'Good',min:47},{t:'Average',min:40},{t:'Below Avg',min:0} ] : [ {t:'Excellent',min:50},{t:'Good',min:43},{t:'Average',min:36},{t:'Below Avg',min:0} ]; for(const b of bands) if(vo2>=b.min) return b.t; return '—'; })(sex,vo2);
+  els.vo2max.textContent = vo2.toFixed(1)+' ml/kg/min';
+  els.vo2class.textContent = vo2class;
+  const t = (function(){ if(sessionType==='endurance'){ return {label:'Z2 aerobic base', minutes:'30–45 (build 60–90)', bpm: Z.Z2 }; } if(sessionType==='power'){ return {label:'Z5 VO2 intervals', minutes:'6–10 total', bpm: Z.Z5 }; } if(sessionType==='recovery'){ return {label:'Z1–Z2 easy', minutes:'20–30', bpm: Z.Z2 }; } if(sessionType==='competition'){ return {label:'Z1–Z2 + warm-ups', minutes:'As sport-specific', bpm: Z.Z2 }; } return {label:'Z1–Z2 support', minutes:'15–20 warm-up/cool-down', bpm: Z.Z2 }; })();
+  els.vo2target.innerHTML = `<div><span class="pill">${t.label}</span> — <b>${t.minutes} @ ${t.bpm[0]}–${t.bpm[1]} bpm</b><div class="note">${useHRR? 'Using %HRR' : '%HRmax fallback'}${rhr? '' : ' • VO2 uses default Resting HR = 70 bpm (enter yours)'} </div></div>`;
+  els.vo2note.textContent = rhr ? 'VO2max uses your Resting HR. Good!' : 'VO2 shown using default Resting HR = 70 bpm. Enter your Resting HR for accuracy.';
+  els.sumVo2.textContent = `${t.label}: ${t.minutes}`;
+
+  // Weekly
+  const goals=(function(activity,sessionType){ let z2=150, z5=10; if(activity==='light'){ z2=90; z5=6; } if(activity==='heavy'){ z2=180; z5=12; } if(activity==='athlete'){ z2=210; z5=15; } if(sessionType==='endurance') z2+=30; if(sessionType==='power') z5+=3; return {z2,z5}; })(activity, sessionType);
+  els.wkZ2Goal.textContent=`${goals.z2} min`; els.wkZ5Goal.textContent=`${goals.z5} min`;
+  let wk=(function(){ try{const raw=localStorage.getItem('dapWeek'); if(!raw) return {key:todayKey.slice(0,4), z2:0, z5:0}; const o=JSON.parse(raw)||{}; return o;}catch{return {key:todayKey.slice(0,4), z2:0, z5:0};} })();
+  els.wkDone.textContent=`Z2 ${wk.z2} / Z5 ${wk.z5} min`; els.sumWeek.textContent=`${wk.z2}/${goals.z2} Z2 • ${wk.z5}/${goals.z5} Z5`;
+  els.addZ2.onclick=()=>{try{const raw=localStorage.getItem('dapWeek'); let w=raw?JSON.parse(raw):{key:todayKey.slice(0,4),z2:0,z5:0}; w.z2+=5; localStorage.setItem('dapWeek',JSON.stringify(w)); compute();}catch{}};
+  els.addZ5.onclick=()=>{try{const raw=localStorage.getItem('dapWeek'); let w=raw?JSON.parse(raw):{key:todayKey.slice(0,4),z2:0,z5:0}; w.z5+=1; localStorage.setItem('dapWeek',JSON.stringify(w)); compute();}catch{}};
+  els.resetWeek.onclick=()=>{try{localStorage.setItem('dapWeek',JSON.stringify({key:todayKey.slice(0,4),z2:0,z5:0})); compute();}catch{}};
+
+  // Sleep & readiness
+  let need=sex==='female'?8.5:7.8; if((Number(els.sleepLast.value)||0)<7)need+=0.5; if(avg<3)need+=0.3; if(['hypertrophy','competition'].includes(sessionType))need+=0.3; if(sex==='female'&&cycle==='luteal')need+=0.3; need=clamp(Number(need.toFixed(1)),7.0,9.5); els.sleepNeed.textContent=need.toFixed(1);
+  const label=avg>=4?'High':avg>=3?'Moderate':'Low'; els.readinessPill.textContent=`Readiness ${label} (${avg.toFixed(1)}/5)`;
+
+  // Minimal other content placeholders
+  els.breathBlock.innerHTML = `<div style="margin-bottom:6px;"><span class="pill">Focus</span></div><ol><li><b>${BREATH.focus[0].title}:</b> ${BREATH.focus[0].detail} <span style="color:#2b2b2b;">(${BREATH.focus[0].duration})</span></li></ol>`;
+  els.scripture.innerHTML = `<div class="verse"><div><b>${NKJV.focus[0].ref}</b></div><div>${NKJV.focus[0].txt}</div></div>`;
+  els.selfTalk.innerHTML = '<ul><li>'+ (sex==='male'? SELF_TALK.male.boost[0] : SELF_TALK.female.boost[0]) +'</li></ul>';
+  els.prayer.textContent = PRAYERS[0];
+}
+
+function saveState(){ const s={sex:els.sex.value,age:els.age.value,rhr:els.rhr.value,heightFt:els.heightFt.value,heightIn:els.heightIn.value,heightCm:els.heightCm.value,weightLb:els.weightLb.value,goalWeightLb:els.goalWeightLb.value,weightKg:els.weightKg.value,goalWeightKg:els.goalWeightKg.value,activity:els.activity.value,sleepLast:els.sleepLast.value,sessionType:els.sessionType.value,sessionMin:els.sessionMin.value,cycle:els.cycle.value,protEmphasis:els.protEmphasis.value,units,answers,savedDate:todayKey}; try{localStorage.setItem('dapVO2G',JSON.stringify(s));}catch{} }
+function loadState(){ try{const raw=localStorage.getItem('dapVO2G'); if(!raw)return; const s=JSON.parse(raw)||{}; els.sex.value=s.sex||'female'; els.age.value=s.age||24; els.rhr.value=s.rhr||''; els.heightFt.value=s.heightFt||5; els.heightIn.value=s.heightIn||6; els.heightCm.value=s.heightCm||167.6; els.weightLb.value=s.weightLb||150; els.goalWeightLb.value=s.goalWeightLb||145; els.weightKg.value=s.weightKg||68; els.goalWeightKg.value=s.goalWeightKg||65.8; els.activity.value=s.activity||'moderate'; els.sleepLast.value=s.sleepLast||7; els.sessionType.value=s.sessionType||'hypertrophy'; els.sessionMin.value=s.sessionMin||60; els.cycle.value=s.cycle||'follicular'; els.protEmphasis.value=s.protEmphasis||'high'; units=s.units||'us'; answers=s.answers||answers; }catch{} }
+
+['sex','age','rhr','heightFt','heightIn','heightCm','weightLb','goalWeightLb','weightKg','goalWeightKg','activity','sleepLast','sessionType','sessionMin','cycle','protEmphasis'].forEach(id=>{
+  const el=$(id); if(!el)return;
+  el.addEventListener('input',()=>{compute();saveState(); if(id==='sex')toggleCycle();});
+  el.addEventListener('change',()=>{compute();saveState(); if(id==='sex')toggleCycle();});
+});
+function toggleCycle(){ els.cycleWrap.style.display=(els.sex.value==='female')?'grid':'none';}
+els.unitsBtn.addEventListener('click',()=>{if(units==='us'){const ft=Number(els.heightFt.value)||0,inch=Number(els.heightIn.value)||0; els.heightCm.value=(cmFromFtIn(ft,inch)).toFixed(1); els.weightKg.value=(kgFromLbs(Number(els.weightLb.value)||0)).toFixed(1); els.goalWeightKg.value=(kgFromLbs(Number(els.goalWeightLb.value)||0)).toFixed(1); units='metric';}else{const cm=Number(els.heightCm.value)||0; const totalIn=cm/2.54; const ft=Math.floor(totalIn/12); const inch=Math.round(totalIn-ft*12); els.heightFt.value=ft; els.heightIn.value=inch; els.weightLb.value=(lbsFromKg(Number(els.weightKg.value)||0)).toFixed(0); els.goalWeightLb.value=(lbsFromKg(Number(els.goalWeightKg.value)||0)).toFixed(0); units='us';} showUnits(); compute(); saveState();});
+els.exportBtn.addEventListener('click',()=>window.print());
+els.copyBtn.addEventListener('click',async()=>{
+  const text=`Target: ${els.sumTarget.textContent}
+P/C/F: ${els.sumPCF.textContent} (Fiber ${els.sumFiber.textContent})
+Sleep: ${els.sumSleep.textContent}
+Zone: ${els.sumZone.textContent}
+VO2 Goal: ${els.sumVo2.textContent}
+Week: ${els.sumWeek.textContent}
+Hydration: ${els.hTotal.textContent} (baseline ${els.hBase.textContent}, extra ${els.hExtra.textContent}); Sodium: ${els.hNa.textContent}`;
+  try{await navigator.clipboard.writeText(text); els.copyBtn.textContent='Copied ✔'; setTimeout(()=>els.copyBtn.textContent='Copy Plan',1200);}catch{}
+});
+
+(function init(){ try{const raw=localStorage.getItem('dapVO2G'); if(raw)loadState();}catch{} buildLikert(); (function showUnits(){ const us=units==='us'; ['heightUS','weightUS','goalWeightUS'].forEach(id=>els[id].classList.toggle('hide',!us)); ['heightMetric','weightMetric','goalWeightMetric'].forEach(id=>els[id].classList.toggle('hide',us)); els.unitsBtn.textContent=us?'Metric':'US';})(); toggleCycle(); compute(); })();
+</script>
+</body>
+</html>
