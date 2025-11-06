@@ -1,0 +1,658 @@
+<script>
+(function AthletePlanner() {
+
+  /***** Constants & Content Pools *****/
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const STORAGE_KEY = 'athletePlanState-v3'; // <-- FIX #1
+  
+  const ACTIVITY = { sedentary: 1.2, light: 1.375, moderate: 1.55, heavy: 1.725, athlete: 1.9 };
+  const FAT_PER_KG = 0.9;
+  const FIBER_PER_1000_KCAL = 14;
+
+  const VO2_CLASSIFICATION = {
+    male: {
+      '18-25': [39, 44, 49, 54],
+      '26-35': [36, 41, 46, 51],
+      '36-45': [32, 37, 42, 47],
+      '46-55': [29, 34, 38, 43],
+      '56-65': [26, 31, 35, 40],
+      '65+':   [23, 28, 32, 36]
+    },
+    female: {
+      '18-25': [33, 38, 43, 48],
+      '26-35': [30, 35, 39, 44],
+      '36-45': [27, 31, 36, 40],
+      '46-55': [25, 29, 33, 37],
+      '56-65': [22, 26, 30, 34],
+      '65+':   [20, 24, 28, 31]
+    }
+  };
+
+  const QUESTIONS = [
+    {id:'conf',label:'Confidence (1 = very low • 5 = very high)'},
+    {id:'focus',label:'Focus on task (1 = scattered • 5 = locked in)'},
+    {id:'motivation',label:'Motivation to train (1 = none • 5 = high)'},
+    {id:'stress',label:'Stress (1 = none • 5 = very high; reverse-scored)',reverse:true},
+    {id:'mood',label:'Mood (1 = poor • 5 = great)'},
+    {id:'anxiety',label:'Performance anxiety (1 = calm • 5 = severe; reverse-scored)',reverse:true},
+    {id:'readiness',label:'Overall readiness (1 = low • 5 = high)'},
+    {id:'soreness',label:'Soreness (1 = none • 5 = severe; reverse-scored)',reverse:true},
+    {id:'fatigue',label:'Fatigue (1 = fresh • 5 = exhausted; reverse-scored)',reverse:true},
+    {id:'selftalk',label:'Self-talk quality (1 = negative • 5 = positive)'},
+    {id:'purpose',label:'Clarity of goals (1 = unclear • 5 = crystal clear)'},
+    {id:'distraction',label:'Distractions (1 = none • 5 = constant; reverse-scored)',reverse:true},
+    {id:'support',label:'Support from others (1 = none • 5 = strong)'},
+    {id:'calm',label:'Calm under pressure (1 = shaky • 5 = steady)'},
+    {id:'drive',label:'Drive to push (1 = off • 5 = on)'}
+  ];
+
+  const NKJV_BASE={courage:[{ref:'Joshua 1:9',txt:'Be strong and of good courage...'},{ref:'Deuteronomy 31:6',txt:'He will not leave you nor forsake you.'},{ref:'Psalm 27:1',txt:'The LORD is my light and my salvation; whom shall I fear?'}],focus:[{ref:'Colossians 3:23',txt:'Whatever you do, do it heartily, as to the Lord and not to men.'},{ref:'Philippians 3:14',txt:'I press toward the goal for the prize of the upward call...'},{ref:'Proverbs 4:25',txt:'Let your eyes look straight ahead...'}],peace:[{ref:'Philippians 4:6–7',txt:'Be anxious for nothing... and the peace of God...'},{ref:'John 14:27',txt:'Peace I leave with you...'},{ref:'Isaiah 26:3',txt:'You will keep him in perfect peace...'}],strength:[{ref:'Isaiah 40:31',txt:'Those who wait on the LORD shall renew their strength...'},{ref:'Psalm 18:32–33',txt:'It is God who arms me with strength...'},{ref:'Habakkuk 3:19',txt:'The LORD God is my strength...'}],endurance:[{ref:'Hebrews 12:1–2',txt:'...let us run with endurance the race that is set before us...'},{ref:'James 1:12',txt:'Blessed is the man who endures temptation...'},{ref:'Romans 5:3–4',txt:'Tribulation produces perseverance...'}],help:[{ref:'Psalm 46:1',txt:'God is our refuge and strength...'},{ref:'Psalm 34:17',txt:'The righteous cry out, and the LORD hears...'},{ref:'Isaiah 41:10',txt:'Fear not, for I am with you... I will strengthen you...'}],hope:[{ref:'Lamentations 3:22–23',txt:'Through the LORD’s mercies we are not consumed...'},{ref:'Romans 15:13',txt:'Now may the God of hope fill you with all joy and peace...'},{ref:'Psalm 31:24',txt:'Be of good courage, and He shall strengthen your heart...'}],recovery:[{ref:'Matthew 11:28–29',txt:'Come to Me, all you who labor...'},{ref:'Psalm 23:1–3',txt:'The LORD is my shepherd... He restores my soul...'},{ref:'3 John 2',txt:'Beloved, I pray that you may prosper in all things...'}],victory:[{ref:'1 Corinthians 9:24–25',txt:'Run in such a way that you may obtain it...'},{ref:'1 John 5:4',txt:'For whatever is born of God overcomes the world...'},{ref:'Romans 8:37',txt:'In all these things we are more than conqUerors...'}]};
+  const NKJV = (()=>{const extra=(window.NKJV_EXTRA||{}); const out={}; const themes=new Set([...Object.keys(NKJV_BASE),...Object.keys(extra)]); themes.forEach(t=>{out[t]=[...(NKJV_BASE[t]||[]),...((extra[t]||[]))];}); return out;})();
+  const BREATH={downshift:[{title:'Physiological Sighs',detail:'Nasal inhale; top-up sniff; long slow exhale.',duration:'5–10 min'},{title:'Resonant 5.5 bpm',detail:'In 4–5 s, out 6–7 s. Relax shoulders.',duration:'5–10 min'},{title:'4-7-8',detail:'In 4 • Hold 7 • Out 8.',duration:'4–8 min'},{title:'Extended Exhale 1:2',detail:'In 3 s • Out 6 s.',duration:'3–10 min'}],focus:[{title:'Box 4-4-4-4',detail:'In 4 • Hold 4 • Out 4 • Hold 4.',duration:'3–6 min'},{title:'Tactical 4/4',detail:'In 4 • Out 4.',duration:'3–10 min'},{title:'Nasal Tempo',detail:'Even cadence; nasal only.',duration:'5–10 min'}]};
+  const MEALS={breakfast:['Greek yogurt (2%) + whey + berries + honey','Eggs + egg whites + sourdough + fruit','Overnight oats (milk) + chia + banana (+ whey)','Protein pancakes + peanut butter + blueberries','Cottage cheese bowl: pineapple + granola','Smoked salmon + eggs + potato + spinach','Turkey sausage egg bites + fruit','Tofu scramble + black beans + avocado'],lunch:['Chicken rice bowl (olive oil) + veggies','Turkey sandwich + cheese + fruit','Tuna pasta salad + spinach','Beef burrito bowl + beans + salsa','Shrimpa quinoa bowl + avocado','Lentil soup + whole grain toast + yogurt','Grilled chicken Caesar (light dressing) + fruit','Soba noodles + edame + sesame chicken'],dinner:['Salmon + potatoes + salad (olive oil)','Beef tacos (corn tortillas) + guac','Stir-fry tofu/chicken + rice','Pork tenderloin + rice pilaf + green beans','Chicken parmesan + pasta + side salad','Turkey chili + rice + side veggies','Baked cod + couscous + asparagus','Bison burger (no bun) + sweet potato + slaw'],snack:['Protein shake + banana','Cottage cheese + crackers','Trail mix (portion) + fruit','String cheese + apple + almonds','Greek yogurt + granola','Beef jerky + orange','Edamame + sea salt','Hummus + carrots + turkey roll-ups']};
+  const SELF_TALK={female:{boost:['I am capable, composed, and powerful.','My breath sets my rhythm; my rhythm sets my performance.','Strength and grace work together in me.'],focus:['I aim my attention where it matters and keep it there.','One task at a time, with poise.'],calm:['Pressure reveals my poise; I respond with composure.','I slow my breath and lead my body.'],grit:['I finish what I start with great form.','Discipline over mood — I execute.']},male:{boost:['I bring calm focus and decisive action to every rep.','I do the hard things well.','I control my breathing, my tempo, my outcome.'],focus:['Laser on the next rep; nothing extra.','Simple, crisp, repeatable actions.'],calm:['I stay composed; my breath steadies my mind.','I trade tension for accuracy.'],grit:['Discipline over mood — I execute.','I finish strong: efficient, fast, relentless.']}};
+  const PRAYERS=['Lord, grant me wisdom, steady breath, and strength to honor You in every choice today. Amen.','Father, guide my steps, protect my mind from distraction, and help me serve others with joy. Amen.','Jesus, shape my effort and attitude. Keep me humble in victory and teachable in struggle. Amen.','God, quiet my anxiety, sharpen my focus, and fill me with courage to do what is right. Amen.','Lord, thank You for this day. Help me to steward my body and gifts for Your glory. Amen.'];
+
+
+  /***** Helper Utilities *****/
+  const $ = id => document.getElementById(id);
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const kgFromLbs = lbs => (lbs || 0) * 0.45359237;
+  const lbsFromKg = kg => (kg || 0) / 0.45359237;
+  const cmFromFtIn = (ft, inch) => ((Number(ft) || 0) * 12 + (Number(inch) || 0)) * 2.54;
+  const ftInFromCm = (cm) => {
+    const totalInches = (cm || 0) / 2.54;
+    const ft = Math.floor(totalInches / 12);
+    const inch = Math.round((totalInches % 12) * 10) / 10;
+    return { ft, inch };
+  };
+
+  function getBag(key){try{const raw=localStorage.getItem(key);if(!raw)return{date:todayKey,used:[]};const o=JSON.parse(raw);if(!o||o.date!==todayKey)return{date:todayKey,used:[]};return o;}catch{return{date:todayKey,used:[]};}}
+  function setBag(key,bag){try{localStorage.setItem(key,JSON.stringify(bag));}catch{}}
+  function nonRepeatingPick(key,arr,count){const bag=getBag(key);let pool=arr.map((v,i)=>({v,i})).filter(x=>!bag.used.includes(x.i));if(pool.length<count){bag.used=[];setBag(key,bag);} const bag2=getBag(key);let pool2=arr.map((v,i)=>({v,i})).filter(x=>!bag2.used.includes(x.i));for(let i=pool2.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool2[i],pool2[j]]=[pool2[j],pool2[i]];}const picks=pool2.slice(0,count);picks.forEach(p=>bag2.used.push(p.i));setBag(key,bag2);return picks.map(p=>p.v);}
+
+  /***** DOM Elements *****/
+  const els = {
+    sex: $("sex"), age: $("age"), rhr: $("rhr"),
+    heightUS: $("heightUS"), heightFt: $("heightFt"), heightIn: $("heightIn"),
+    heightMetric: $("heightMetric"), heightCm: $("heightCm"),
+    weightUS: $("weightUS"), weightLb: $("weightLb"),
+    goalWeightUS: $("goalWeightUS"), goalWeightLb: $("goalWeightLb"),
+    weightMetric: $("weightMetric"), weightKg: $("weightKg"),
+    goalWeightMetric: $("goalWeightMetric"), goalWeightKg: $("goalWeightKg"),
+    activity: $("activity"), sleepLast: $("sleepLast"), sessionType: $("sessionType"),
+    sessionMin: $("sessionMin"), cycleWrap: $("cycleWrap"), cycle: $("cycle"),
+    protEmphasis: $("protEmphasis"), unitsBtn: $("unitsBtn"), exportBtn: $("exportBtn"),
+    copyBtn: $("copyBtn"), ideasBtn: $("ideasBtn"),
+    goalTag: $("goalTag"), bmr: $("bmr"), tdee: $("tdee"), target: $("target"),
+    protModel: $("protModel"), gP: $("gP"), gC: $("gC"), gF: $("gF"), gFiber: $("gFiber"),
+    protNotes: $("protNotes"), sleepNeed: $("sleepNeed"), sleepBreath: $("sleepBreath"),
+    hydrationUnitLabel: $("hydrationUnitLabel"), hBase: $("hBase"), hExtra: $("hExtra"), hTotal: $("hTotal"), hNa: $("hNa"),
+    coldYesNo: $("coldYesNo"), coldTiming: $("coldTiming"), coldExtra: $("coldExtra"),
+    coldTemp: $("coldTemp"), coldDur: $("coldDur"), coldWhy: $("coldWhy"),
+    sumTarget: $("sumTarget"), sumPCF: $("sumPCF"), sumFiber: $("sumFiber"),
+    sumSleep: $("sumSleep"), sumZone: $("sumZone"), sumVo2: $("sumVo2"), sumWeek: $("sumWeek"),
+    likertList: $("likertList"), ideas: $("ideas"), planBlocks: $("planBlocks"),
+    readinessPill: $("readinessPill"), breathBlock: $("breathBlock"), scripture: $("scripture"),
+    selfTalk: $("selfTalk"), prayer: $("prayer"),
+    hrMax: $("hrMax"), hrRest: $("hrRest"), zoneTable: $("zoneTable"), zonePrescription: $("zonePrescription"),
+    cycleSupp: $("cycleSupp"), cycleSuppCard: $("cycleSuppCard"),
+    vo2max: $("vo2max"), vo2class: $("vo2class"), vo2target: $("vo2target"), vo2note: $("vo2note"),
+    wkZ2Goal: $("wkZ2Goal"), wkZ5Goal: $("wkZ5Goal"), wkDone: $("wkDone"),
+    addZ2: $("addZ2"), addZ5: $("addZ5"), resetWeek: $("resetWeek")
+  };
+
+  /***** STATE MANAGEMENT *****/
+  let state = {
+    units: 'us',
+    sex: 'female',
+    age: 24,
+    rhr: 55, // <-- FIX #2 (The Default)
+    heightFt: 5,
+    heightIn: 6,
+    heightCm: 167.6,
+    weightLb: 150,
+    goalWeightLb: 145,
+    weightKg: 68,
+    goalWeightKg: 65.8,
+    activity: 'moderate',
+    sleepLast: 7.0,
+    sessionType: 'hypertrophy',
+    sessionMin: 60,
+    cycle: 'follicular',
+    protEmphasis: 'high',
+    answers: {},
+    weeklyZ2: 0,
+    weeklyZ5: 0
+  };
+
+  QUESTIONS.forEach(q => state.answers[q.id] = 3);
+  
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Failed to save state to localStorage', e);
+    }
+  }
+
+  function loadState() {
+    try {
+      const storedState = localStorage.getItem(STORAGE_KEY);
+      if (storedState) {
+        const loaded = JSON.parse(storedState);
+        state = { ...state, ...loaded }; // Merge loaded data over defaults
+        
+        let loadedAnswers = loaded.answers || {};
+        QUESTIONS.forEach(q => {
+          state.answers[q.id] = loadedAnswers[q.id] || 3;
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to load state, using defaults', e);
+      localStorage.removeItem(STORAGE_KEY); // Clear bad data
+    }
+  }
+
+  function syncDomFromState() {
+    els.sex.value = state.sex;
+    els.age.value = state.age;
+    els.rhr.value = state.rhr || '';
+    els.heightFt.value = state.heightFt;
+    els.heightIn.value = state.heightIn;
+    els.heightCm.value = state.heightCm;
+    els.weightLb.value = state.weightLb;
+    els.goalWeightLb.value = state.goalWeightLb;
+    els.weightKg.value = state.weightKg;
+    els.goalWeightKg.value = state.goalWeightKg;
+    els.activity.value = state.activity;
+    els.sleepLast.value = state.sleepLast;
+    els.sessionType.value = state.sessionType;
+    els.sessionMin.value = state.sessionMin;
+    els.cycle.value = state.cycle;
+    els.protEmphasis.value = state.protEmphasis;
+
+    toggleUnitViews(state.units);
+    els.cycleWrap.style.display = state.sex === 'female' ? 'grid' : 'none';
+  }
+
+  /***** UI BUILDERS & HELPERS *****/
+  const display = (el, show) => el.style.display = show ? (el.dataset.d || 'grid') : 'none';
+  const updateHTML = (id, val, unit = '') => {
+    if (els[id]) els[id].innerHTML = (val != null && val !== 'N/A') ? (val + unit) : '—';
+  };
+  const updateText = (id, val) => {
+    if (els[id]) els[id].textContent = val ?? '—';
+  };
+  const r = (n, f = 0) => n == null ? null : Number(n.toFixed(f));
+
+  function buildLikert() {
+    els.likertList.innerHTML = '';
+    QUESTIONS.forEach(q => {
+      const row = document.createElement('div');
+      row.className = 'likert-row';
+      const label = document.createElement('div');
+      label.className = 'likert-label';
+      label.textContent = q.label;
+      const group = document.createElement('div');
+      group.className = 'likert';
+      
+      [1, 2, 3, 4, 5].forEach(v => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = v;
+        const isActive = state.answers[q.id] === v;
+        b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) b.classList.add('active');
+        
+        b.addEventListener('click', () => {
+          state.answers[q.id] = v;
+          buildLikert();
+          recalculateAndSave();
+        });
+        group.appendChild(b);
+      });
+      row.appendChild(label);
+      row.appendChild(group);
+      els.likertList.appendChild(row);
+    });
+  }
+
+  function toggleUnitViews(newUnits) {
+    const isUS = newUnits === 'us';
+    display(els.heightUS, isUS);
+    display(els.weightUS, isUS);
+    display(els.goalWeightUS, isUS);
+    display(els.heightMetric, !isUS);
+    display(els.weightMetric, !isUS);
+    display(els.goalWeightMetric, !isUS);
+    els.unitsBtn.textContent = isUS ? 'Metric' : 'US (lbs/ft)';
+    updateText('hydrationUnitLabel', isUS ? 'Gallons (gal). Baseline + session add-on.' : 'Liters (L). Baseline + session add-on.');
+  }
+
+  /***** CALCULATION LOGIC *****/
+  
+  function _calculateReadiness(answers, sleepLast) {
+    const sleepBase = state.sex === 'female' ? 8.5 : 7.8;
+    const sleepDebt = Math.max(0, sleepBase - sleepLast);
+    let score = 0;
+    QUESTIONS.forEach(q => {
+      let v = answers[q.id];
+      if (q.reverse) v = 6 - v;
+      score += v;
+    });
+    let readinessScore = Math.round((score / (QUESTIONS.length * 5)) * 100);
+    if (sleepDebt > 1) readinessScore -= 5;
+    if (sleepDebt > 2) readinessScore -= 10;
+    
+    let pillText = '...';
+    if (readinessScore >= 85) pillText = 'Primed';
+    else if (readinessScore >= 70) pillText = 'Ready';
+    else if (readinessScore >= 50) pillText = 'Moderate';
+    else if (readinessScore >= 30) pillText = 'Low';
+    else pillText = 'Very Low';
+    
+    return {
+      score: readinessScore,
+      pill: `Readiness ${readinessScore}% (${pillText})`,
+      sleepDebt: sleepDebt,
+      rawScore: score
+    };
+  }
+
+  function _calculateMacros(appState) {
+    const { sex, age, activity, protEmphasis, sleepLast, sessionMin, sessionType, cycle } = appState;
+    const kg = state.weightKg;
+    const cm = state.heightCm;
+    const s = sex === 'male' ? 5 : -161;
+    const bmr = (10 * kg) + (6.25 * cm) - (5 * age) + s;
+    const tdee = bmr * (ACTIVITY[activity] || 1.55);
+    const goal = inferGoal(state.weightLb, state.goalWeightLb);
+    const goalKg = state.goalWeightKg;
+    let targetKcal;
+    if (goal === 'cut') targetKcal = tdee - 450;
+    else if (goal === 'bulk') targetKcal = tdee + 350;
+    else targetKcal = tdee;
+
+    const sleepHours = sleepLast;
+    const soreness = state.answers.soreness;
+    const baseProt = goal === 'cut' ? 2.1 : (goal === 'bulk' ? 1.8 : 2.0);
+    const emphBump = protEmphasis === 'very' ? 0.5 : (protEmphasis === 'high' ? 0.25 : 0.0);
+    
+    let add = 0;
+    if (sleepHours < 7) add += 0.15;
+    if (sessionMin >= 75 || ['hypertrophy', 'endurance', 'competition', 'power'].includes(sessionType)) add += 0.10;
+    if (soreness >= 4) add += 0.10;
+    if (goal === 'cut') add += 0.10;
+
+    const protModel = clamp(baseProt + emphBump + add, 1.6, 2.7);
+    let protPerKg = protModel;
+    if (sex === 'female' && cycle === 'luteal' && goal !== 'cut') {
+      protPerKg = Math.min(2.7, protPerKg + 0.15);
+    }
+    
+    const gP = protPerKg * goalKg;
+    const kcalP = gP * 4;
+    const gF = FAT_PER_KG * kg;
+    const kcalF = gF * 9;
+    const kcalC = targetKcal - kcalP - kcalF;
+    const gC = kcalC / 4;
+    const gFiber = (targetKcal / 1000) * FIBER_PER_1000_KCAL;
+    
+    return {
+      bmr: r(bmr), tdee: r(tdee), targetKcal: r(targetKcal),
+      protModel: r(protModel, 2), gP: r(gP), gC: r(gC), gF: r(gF), gFiber: r(gFiber),
+      goal: goal.toUpperCase(),
+      protNotes: `Protein (g/kg) logic: ${r(baseProt,2)} (base) + ${r(emphBump,2)} (emph) + ${r(add,2)} (dynamic) = ${r(protModel,2)} g/kg.`
+    };
+  }
+  
+  function inferGoal(currentLb, goalLb) {
+    const cut = currentLb * 0.97;
+    const bulk = currentLb * 1.03;
+    return goalLb <= cut ? 'cut' : (goalLb >= bulk ? 'bulk' : 'maintain');
+  }
+
+  function _calculateHR(appState) {
+    const { age, rhr, sessionType } = appState;
+    const hrMax = 220 - age;
+    const hrRest = rhr || (hrMax * 0.35);
+    const hrr = hrMax - hrRest;
+    const hasRHR = !!rhr;
+    
+    const z2_low = hasRHR ? (hrr * 0.60) + hrRest : hrMax * 0.70;
+    const z2_high = hasRHR ? (hrr * 0.70) + hrRest : hrMax * 0.80;
+    const z5_low = hasRHR ? (hrr * 0.90) + hrRest : hrMax * 0.90;
+    const z5_high = hrMax;
+    
+    let prescription = '';
+    let zoneSum = 'Z2/Z5';
+    if (sessionType === 'endurance') {
+      prescription = `<b>Endurance Focus:</b> Aim for 30–60+ min in Zone 2 (${r(z2_low)}–${r(z2_high)} bpm).`;
+      zoneSum = 'Z2';
+    } else if (sessionType === 'power') {
+      prescription = `<b>Power/Sprint Focus:</b> Work in Zone 5 (${r(z5_low)}–${r(z5_high)} bpm) for short bursts (e.g., 8x 30s ON, 90s OFF).`;
+      zoneSum = 'Z5';
+    } else if (sessionType === 'hypertrophy') {
+      prescription = `<b>Hypertrophy/Strength:</b> Heart rate is secondary to lifting. Zone 2 (${r(z2_low)}–${r(z2_high)} bpm) for active recovery or warm-up.`;
+    } else {
+      prescription = `<b>Recovery Day:</b> Optional 20–30 min in Zone 2 (${r(z2_low)}–${r(z2_high)} bpm) to promote blood flow.`;
+    }
+    
+    const zones = [
+      { z: 'Z1', pct: '50–60%', bpm: `${r(hrMax*0.5)}–${r(hrMax*0.6)}` },
+      { z: 'Z2', pct: '60–70%', bpm: `<b>${r(z2_low)}–${r(z2_high)}</b>` },
+      { z: 'Z3', pct: '70–80%', bpm: `${r(hrMax*0.7)}–${r(hrMax*0.8)}` },
+      { z: 'Z4', pct: '80–90%', bpm: `${r(hrMax*0.8)}–${r(hrMax*0.9)}` },
+      { z: 'Z5', pct: '90–100%', bpm: `<b>${r(z5_low)}–${r(z5_high)}</b>` }
+    ];
+
+    return { hrMax, hrRest, zones, prescription, zoneSum };
+  }
+  
+  function getAgeGroup(age) {
+    if (age <= 25) return '18-25';
+    if (age <= 35) return '26-35';
+    if (age <= 45) return '36-45';
+    if (age <= 55) return '46-55';
+    if (age <= 65) return '56-65';
+    return '65+';
+  }
+
+  function classifyVO2(vo2, sex, ageGroup) {
+    const thresholds = VO2_CLASSIFICATION[sex][ageGroup];
+    if (vo2 >= thresholds[3]) return 'Superior';
+    if (vo2 >= thresholds[2]) return 'Excellent';
+    if (vo2 >= thresholds[1]) return 'Good';
+    if (vo2 >= thresholds[0]) return 'Fair';
+    return 'Poor';
+  }
+  
+  function _calculateVO2(appState) {
+    const { age, rhr, sex, sessionType } = appState;
+    const hrMax = 220 - age;
+    let vo2max = null, classification = 'N/A', target = '', vo2Sum = '...';
+    let vo2note = 'Enter Resting HR (RHR) for a VO₂max estimate.';
+
+    if (rhr && rhr > 0) {
+      // Uth–Sørensen–Overgaard–Pedersen formula (HR Ratio method)
+      vo2max = 15.3 * (hrMax / rhr);
+      
+      const ageGroup = getAgeGroup(age);
+      classification = classifyVO2(vo2max, sex, ageGroup);
+      vo2note = `Estimated using the Heart Rate Ratio method (15.3 * [HRmax / RHR]). Classification is based on Cooper Institute data for your age and sex.`;
+    }
+    
+    switch (sessionType) {
+      case 'endurance':
+        target = '<b>VO₂max Focus:</b> Today is ideal for VO₂max work. Aim to accumulate 3-5 minute intervals in Zone 5 (90-100% HRmax).<br><b>Example:</b> 4 repeats of [4 min @ 90-95% HRmax] + [3 min active recovery @ 70% HRmax].';
+        vo2Sum = 'Z5 Work';
+        break;
+      case 'power':
+        target = '<b>Power/Sprint Focus:</b> Today\'s HIIT will significantly tax VO₂max. Focus on maximal power output during intervals.<br><b>Example:</b> 8-10 repeats of [30 sec all-out sprint] + [90 sec light recovery].';
+        vo2Sum = 'HIIT';
+        break;
+      case 'competition':
+        target = '<b>Competition Day:</b> Your VO₂max is a result of your training. Focus on your event plan and execution. Good luck!';
+        vo2Sum = 'Compete';
+        break;
+      case 'recovery':
+      case 'hypertrophy':
+      default:
+        target = '<b>Goal:</b> VO₂max is not the primary target. Focus on today\'s session goal (e.g., strength, recovery). High-intensity lifts will tax anaerobic systems, which is different from aerobic VO₂max adaptation.';
+        vo2Sum = 'N/A';
+        break;
+    }
+
+    return { vo2max: r(vo2max, 1), classification, target, vo2note, vo2Sum };
+  }
+  
+  function coldPlungePlanner({sex,goal,sessionType,readiness,soreness,cycle}){const rec={recommend:false,rationale:'',timing:'',tempC:10,tempF:50,durationMin:0};const lowReadiness=readiness<3,highSoreness=soreness>=4,growth=(goal==='bulk'||sessionType==='hypertrophy');if(growth){rec.recommend=highSoreness||lowReadiness;rec.rationale='Growth focus: avoid immediate post-lift cold; use for soreness/fatigue if needed.';rec.timing='If used: 6–12+ h after lifting or next morning.';rec.durationMin=rec.recommend?6:0;}else if(['competition','endurance','power'].includes(sessionType)){rec.recommend=true;rec.rationale='Recovery/turnaround focus.';rec.timing='Within 0–60 min post-session or later in day.';rec.durationMin=6;}else if(sessionType==='recovery'){rec.recommend=true;rec.rationale='Recovery day; short, moderate cold.';rec.timing='Any time, earlier in day.';rec.durationMin=5;}if(sex==='female'&&cycle==='luteal'){rec.tempC=12;rec.tempF=54;if(rec.durationMin>0)rec.durationMin=Math.max(4,rec.durationMin-1);rec.rationale+=' Luteal: slightly warmer/shorter.';}if(!rec.recommend)rec.durationMin=0;return rec;}
+  function breathingPlanner({stress,anxiety,readiness,sleepDebt}){const needDown=(readiness<3||stress>=4||anxiety>=4||sleepDebt>1);const bagKey='breath-'+todayKey+'-'+(needDown?'down':'focus');const picks=nonRepeatingPick(bagKey,needDown?BREATH.downshift:BREATH.focus,3);const focus=needDown?'Downshift':'Up-regulate / Focus';return{focus,items:picks};}
+  function scripturePlanner(ctx){const picks=[];const add=(theme,count)=>{if(!NKJV[theme])return;const key='script-'+todayKey+'-'+theme;picks.push(...nonRepeatingPick(key,NKJV[theme],count));};const {stress,anxiety,moodLow,confidenceLow,distractionHigh,supportLow,driveLow,readinessHigh,competitionDay,recoveryDay,purposeLow,calmLow,fatigueHigh}=ctx;if(competitionDay)add('victory',2);if(readinessHigh)add('strength',1);if(confidenceLow)add('courage',1);if(stress||anxiety)add('peace',1);if(moodLow||fatigueHigh)add('recovery',1);if(purposeLow||distractionHigh)add('focus',1);if(supportLow)add('help',1);if(driveLow)add('endurance',1);if(!picks.length)add('hope',1);return picks.slice(0,6);}
+  function selfTalkPlanner(sex,answers){const bank=SELF_TALK[sex];const out=[];const low=(k)=>Number(answers[k]||3)<=2;const high=(k)=>Number(answers[k]||3)>=4; if(low('conf')) out.push(bank.boost[0]); if(high('distraction')) out.push(bank.focus[0]); if(high('stress')||high('anxiety')) out.push(bank.calm[0]); if(low('drive')) out.push(bank.grit[0]); if(out.length<2) out.push(bank.boost[1]||bank.focus[1]); return out.slice(0,3);}
+  function dayPlan({goal,sessionType,readiness,soreness,sleepDebt}){const blocks=[];if(readiness<2.5||sleepDebt>1.5){blocks.push({label:'Training',text:'Easy day: technique + mobility + Zone 2 (15–25 min). Optional light accessories.'});}else if(soreness>=4){blocks.push({label:'Training',text:'Reduce volume 25–40%. Keep intensity moderate. Emphasize long rest and form.'});}else{let txt='Proceed as planned.';if(goal==='cut'&&sessionType==='hypertrophy')txt+=' Maintain intensity, reduce volume slightly if low energy.';blocks.push({label:'Training',text:txt});}if(readiness<3)blocks.push({label:'Mindset',text:'Focus on execution, not outcome. Control breath.'});return blocks;}
+  function cycleSupplements(cycle){const items=[];if(cycle==='menstruation')items.push('<b>Iron:</b> Key due to blood loss (check levels). <b>Magnesium:</b> May help cramps. <b>Omega-3:</b> Anti-inflammatory.');else if(cycle==='follicular')items.push('<b>Baseline:</b> Focus on whole-food nutrients. <b>Vitamin D:</b> If deficient. <b>Probiotics:</b> Gut health.');else if(cycle==='ovulatory')items.push('<b>Peak Energy:</b> Ensure adequate hydration/electrolytes. <b>Magnesium:</b> Supports energy & sleep.');else if(cycle==='luteal')items.push('<b>Magnesium:</b> May help PMS, sleep. <b>B-Vitamins (B6):</b> Mood support. <b>Calcium:</b> PMS support. <b>Omega-3:</b> Mood/inflammation.');return items;}
+
+
+  /***** MAIN APP LOGIC *****/
+  function recalculate() {
+    const readiness = _calculateReadiness(state.answers, state.sleepLast);
+    const macros = _calculateMacros(state);
+    const hr = _calculateHR(state);
+    const vo2 = _calculateVO2(state);
+    
+    const goal = inferGoal(state.weightLb, state.goalWeightLb);
+    const coldPlan = coldPlungePlanner({
+      sex: state.sex, goal: goal, sessionType: state.sessionType,
+      readiness: state.answers.readiness, soreness: state.answers.soreness, cycle: state.cycle
+    });
+    
+    const breathPlan = breathingPlanner({
+      stress: state.answers.stress, anxiety: state.answers.anxiety,
+      readiness: state.answers.readiness, sleepDebt: readiness.sleepDebt
+    });
+
+    const scriptCtx = {
+      stress: state.answers.stress >= 4, anxiety: state.answers.anxiety >= 4,
+      moodLow: state.answers.mood <= 2, confidenceLow: state.answers.conf <= 2,
+      distractionHigh: state.answers.distraction >= 4, supportLow: state.answers.support <= 2,
+      driveLow: state.answers.drive <= 2, readinessHigh: state.answers.readiness >= 4,
+      competitionDay: state.sessionType === 'competition', recoveryDay: state.sessionType === 'recovery',
+      purposeLow: state.answers.purpose <= 2, calmLow: state.answers.calm <= 2, fatigueHigh: state.answers.fatigue >= 4,
+    };
+    const scripturePlan = scripturePlanner(scriptCtx);
+    const talkPlan = selfTalkPlanner(state.sex, state.answers);
+    const prayerPlan = nonRepeatingPick('prayer-' + todayKey, PRAYERS, 1);
+    const plan = dayPlan({
+      goal: goal, sessionType: state.sessionType,
+      readiness: state.answers.readiness, soreness: state.answers.soreness, sleepDebt: readiness.sleepDebt
+    });
+
+    render({
+      readiness, macros, hr, vo2, coldPlan,
+      breathPlan, scripturePlan, talkPlan, prayerPlan, plan
+    });
+  }
+
+  function render(results) {
+    const { readiness, macros, hr, vo2, coldPlan, breathPlan, scripturePlan, talkPlan, prayerPlan, plan } = results;
+
+    updateText('readinessPill', readiness.pill);
+    updateText('goalTag', macros.goal);
+    updateHTML('bmr', macros.bmr, ' kcal');
+    updateHTML('tdee', macros.tdee, ' kcal');
+    updateHTML('target', macros.targetKcal, ' kcal');
+    updateHTML('protModel', macros.protModel, ' g/kg');
+    updateHTML('gP', macros.gP, 'g');
+    updateHTML('gC', macros.gC, 'g');
+    updateHTML('gF', macros.gF, 'g');
+    updateHTML('gFiber', macros.gFiber, 'g');
+    updateText('protNotes', macros.protNotes);
+
+    updateHTML('hrMax', hr.hrMax, ' bpm');
+    updateHTML('hrRest', state.rhr ? hr.hrRest : `${r(hr.hrRest)} (est.)`, ' bpm');
+    els.zonePrescription.innerHTML = hr.prescription;
+    els.zoneTable.innerHTML = hr.zones.map(z => 
+      `<div class="kpi"><small>${z.z} (${z.pct})</small><b>${z.bpm}</b></div>`
+    ).join('');
+
+HTML('vo2max', vo2.vo2max, ' ml/kg/min');
+    updateText('vo2class', vo2.classification);
+    updateText('vo2note', vo2.vo2note);
+    els.vo2target.innerHTML = vo2.target;
+
+    updateText('coldYesNo', coldPlan.recommend ? 'Yes' : 'No');
+    updateText('coldTiming', coldPlan.recommend ? coldPlan.timing : 'N/A');
+    updateText('coldWhy', coldPlan.rationale);
+    display(els.coldExtra, coldPlan.recommend);
+    if (coldPlan.recommend) {
+      const tempUnit = state.units === 'us' ? '°F' : '°C';
+      const temp = state.units === 'us' ? coldPlan.tempF : coldPlan.tempC;
+      updateText('coldTemp', `${temp} ${tempUnit}`);
+      updateHTML('coldDur', coldPlan.durationMin, ' min');
+    }
+    
+    els.planBlocks.innerHTML = plan.map(p => `<div><h3>${p.label}</h3><p>${p.text}</p></div>`).join('');
+
+    els.breathBlock.innerHTML = `<h3>${breathPlan.focus}</h3>` + breathPlan.items.map(b => 
+      `<div class="verse"><b>${b.title} (${b.duration}):</b> ${b.detail}</div>`
+    ).join('');
+    
+    els.scripture.innerHTML = scripturePlan.map(v => 
+      `<div class="verse"><p>${v.txt}</p><small>— ${v.ref}</small></div>`
+    ).join('');
+    els.selfTalk.innerHTML = talkPlan.map(t => `<div class="verse"><p>${t}</p></div>`).join('');
+    els.prayer.innerHTML = prayerPlan.map(p => `<div class="verse"><p>${p}</p></div>`).join('');
+    
+    const supps = cycleSupplements(state.cycle);
+    els.cycleSupp.innerHTML = supps.map(s => `<li>${s}</li>`).join('');
+    display(els.cycleSuppCard, state.sex === 'female');
+
+    const hBase = state.weightLb / 2;
+    const hExtra = (state.sessionMin / 30) * 12;
+    const hTotal = hBase + hExtra;
+    const isUS = state.units === 'us';
+    const hDiv = isUS ? 128 : 33.814;
+    const hLabel = isUS ? 'gal' : 'L';
+    
+    updateHTML('hBase', r(hBase / hDiv, 1), ` ${hLabel}`);
+    updateHTML('hExtra', r(hExtra / hDiv, 1), ` ${hLabel}`);
+    updateHTML('hTotal', r(hTotal / hDiv, 1), ` ${hLabel}`);
+    updateHTML('hNa', r(state.sessionMin * 1.5, 0), ' mg (session)');
+
+    const sleepBase = state.sex === 'female' ? 8.5 : 7.8;
+    const sleepNeed = clamp(sleepBase + (state.sessionMin / 60) * 0.2 - (state.sleepLast - sleepBase), 7.5, 9.5);
+    updateHTML('sleepNeed', r(sleepNeed, 1));
+    els.sleepBreath.textContent = breathPlan.focus === 'Downshift' ? 
+      `5–10 min: ${breathPlan.items[0].title}` : 
+      '5–10 min downshift breathing';
+    els.sleepDeepDive.innerHTML = `<b>Sleep Focus:</b> Prioritize ${r(sleepNeed,1)} hours. Your readiness score was ${readiness.score}%. ${readiness.sleepDebt > 0 ? `You have ~${r(readiness.sleepDebt,1)}h sleep debt.` : 'No sleep debt detected.'}`;
+
+    updateHTML('wkZ2Goal', 150, ' min');
+    updateHTML('wkZ5Goal', 15, ' min');
+    updateText('wkDone', `Z2: ${state.weeklyZ2} / Z5: ${state.weeklyZ5}`);
+
+    updateHTML('sumTarget', macros.targetKcal, ' kcal');
+    updateText('sumPCF', `${macros.gP}/${macros.gC}/${macros.gF} g`);
+    updateHTML('sumFiber', macros.gFiber, ' g');
+    updateHTML('sumSleep', r(sleepNeed, 1), ' h');
+    updateText('sumZone', hr.zoneSum);
+    updateText('sumVo2', vo2.vo2Sum);
+    updateText('sumWeek', `${state.weeklyZ2}/${state.weeklyZ5}m`);
+  }
+
+  /***** EVENT LISTENERS *****/
+  function handleInputChange(e) {
+    const { id, value, type } = e.target;
+    
+    if (type === 'number') {
+      state[id] = value ? Number(value) : null;
+    } else {
+      state[id] = value;
+    }
+
+    if (id === 'heightFt' || id === 'heightIn') {
+      state.heightCm = r(cmFromFtIn(state.heightFt, state.heightIn), 1);
+      els.heightCm.value = state.heightCm;
+    }
+    else if (id === 'heightCm') {
+      const { ft, inch } = ftInFromCm(state.heightCm);
+      state.heightFt = ft;
+      state.heightIn = inch;
+      els.heightFt.value = ft;
+      els.heightIn.value = inch;
+    }
+    else if (id === 'weightLb') {
+      state.weightKg = r(kgFromLbs(state.weightLb), 1);
+      els.weightKg.value = state.weightKg;
+    }
+    else if (id === 'weightKg') {
+      state.weightLb = r(lbsFromKg(state.weightKg), 1);
+      els.weightLb.value = state.weightLb;
+    }
+    else if (id === 'goalWeightLb') {
+      state.goalWeightKg = r(kgFromLbs(state.goalWeightLb), 1);
+      els.goalWeightKg.value = state.goalWeightKg;
+    }
+    else if (id === 'goalWeightKg') {
+      state.goalWeightLb = r(lbsFromKg(state.goalWeightKg), 1);
+      els.goalWeightLb.value = state.goalWeightLb;
+    }
+    else if (id === 'sex') {
+      els.cycleWrap.style.display = state.sex === 'female' ? 'grid' : 'none';
+    }
+
+    recalculateAndSave();
+  }
+  
+  function handleUnitToggle() {
+    state.units = state.units === 'us' ? 'metric' : 'us';
+    toggleUnitViews(state.units);
+    recalculateAndSave();
+  }
+  
+  function handleWeeklyButton(type) {
+    if (type === 'reset') {
+      state.weeklyZ2 = 0;
+      state.weeklyZ5 = 0;
+    } else if (type === 'z2') {
+      state.weeklyZ2 += 5;
+    } else if (type === 'z5') {
+      state.weeklyZ5 += 1;
+    }
+    recalculateAndSave();
+  }
+
+  function recalculateAndSave() {
+    recalculate();
+    saveState();
+  }
+
+  function exportPlan() {
+    els.exportBtn.textContent = 'Printing...';
+    window.print();
+    setTimeout(() => { els.exportBtn.textContent = 'Print / Share'; }, 1000);
+  }
+  
+  function copyPlan() {
+    els.copyBtn.textContent = 'Copied!';
+    setTimeout(() => { els.copyBtn.textContent = 'Copy Plan'; }, 1200);
+  }
+  
+  function toggleIdeas() {
+    const show = els.ideas.classList.toggle('hide');
+    els.ideasBtn.textContent = show ? 'Meal Ideas' : 'Hide Ideas';
+    if (!show && els.ideas.innerHTML === '') {
+      els.ideas.innerHTML = Object.keys(MEALS).map(k =>
+        `<h3>${k.charAt(0).toUpperCase() + k.slice(1)}</h3><ul>` +
+        nonRepeatingPick('meals-' + k, MEALS[k], 4).map(m => `<li>${m}</li>`).join('') +
+        '</ul>'
+      ).join('');
+    }
+  }
+
+  /***** INITIALIZATION *****/
+  function init() {
+    loadState();
+    syncDomFromState();
+    buildLikert();
+    recalculate();
+    
+    const inputs = ['sex','age','rhr','heightFt','heightIn','heightCm','weightLb','goalWeightLb','weightKg','goalWeightKg','activity','sleepLast','sessionType','sessionMin','cycle','protEmphasis'];
+    inputs.forEach(id => els[id]?.addEventListener('input', handleInputChange));
+    
+    els.unitsBtn.addEventListener('click', handleUnitToggle);
+    els.exportBtn.addEventListener('click', exportPlan);
+    els.copyBtn.addEventListener('click', copyPlan);
+    els.ideasBtn.addEventListener('click', toggleIdeas);
+    
+    els.addZ2.addEventListener('click', () => handleWeeklyButton('z2'));
+    els.addZ5.addEventListener('click', () => handleWeeklyButton('z5'));
+    els.resetWeek.addEventListener('click', () => handleWeeklyButton('reset'));
+  }
+
+  init();
+
+})();
+</script>
