@@ -1,0 +1,617 @@
+import React, { useMemo, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { BookOpen, Droplets, FlaskConical, HeartPulse, Moon, Snowflake, UtensilsCrossed } from "lucide-react";
+
+// ------------------------------------------------------------
+// THE TUNGSTEN STANDARD — Single-file React app
+// ------------------------------------------------------------
+// Notes:
+// - TailwindCSS + shadcn/ui components assumed.
+// - All computations are client-side, no PII is sent anywhere.
+// - LocalStorage persistence is provided for key inputs.
+// - This is an MVP with thoughtful, research-aligned defaults.
+// ------------------------------------------------------------
+
+// --- Helper Utilities -------------------------------------------------------
+const cmFromInches = (ft, inches) => (Number(ft) * 12 + Number(inches)) * 2.54;
+const kgFromLbs = (lbs) => Number(lbs) * 0.45359237;
+const lbsFromKg = (kg) => Number(kg) / 0.45359237;
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+// Activity factors (Harris-Benedict style)
+const ACTIVITY = {
+  sedentary: 1.2,
+  light: 1.375,
+  moderate: 1.55,
+  active: 1.725,
+  athlete: 1.9,
+};
+
+// Verse library (NKJV references) — grouped by themes
+const VERSES = {
+  strength: [
+    { ref: "Philippians 4:13", text: "I can do all things through Christ who strengthens me." },
+    { ref: "Isaiah 41:10", text: "Fear not, for I am with you; Be not dismayed, for I am your God." },
+    { ref: "Joshua 1:9", text: "Be strong and of good courage... for the Lord your God is with you wherever you go." },
+  ],
+  peace: [
+    { ref: "John 14:27", text: "Peace I leave with you, My peace I give to you... Let not your heart be troubled." },
+    { ref: "Philippians 4:6-7", text: "Be anxious for nothing... and the peace of God... will guard your hearts and minds." },
+    { ref: "1 Peter 5:7", text: "Casting all your care upon Him, for He cares for you." },
+  ],
+  wisdom: [
+    { ref: "James 1:5", text: "If any of you lacks wisdom, let him ask of God... and it will be given to him." },
+    { ref: "Proverbs 3:5-6", text: "Trust in the Lord with all your heart... and He shall direct your paths." },
+  ],
+  hope: [
+    { ref: "Romans 8:28", text: "All things work together for good to those who love God..." },
+    { ref: "Hebrews 11:1", text: "Now faith is the substance of things hoped for, the evidence of things not seen." },
+  ],
+  grace: [
+    { ref: "Ephesians 2:8-9", text: "For by grace you have been saved through faith... it is the gift of God." },
+    { ref: "1 John 4:7-8", text: "Beloved, let us love one another... for God is love." },
+  ],
+};
+
+// Simple prayers by theme
+const PRAYERS = {
+  low: (name) => `Lord, meet ${name || "me"} right here. Grant fresh strength, steady breath, and a quiet mind. Help me take the next right step today. Amen.`,
+  medium: (name) => `Father, thank You for Your guiding hand. Help ${name || "me"} stay faithful in the small things—sleep, nourishment, and kindness—so resilience grows. Amen.`,
+  high: (name) => `Lord, thank You for this season of momentum. Keep ${name || "me"} humble, focused, and generous. Use my health to serve others well. Amen.`,
+};
+
+// Food ideas repository (minimal examples, swap per macros later)
+const FOOD_IDEAS = {
+  protein: ["Chicken breast", "Salmon", "Greek yogurt", "Eggs", "Lentils"],
+  carbs: ["Quinoa", "Oats", "Sweet potatoes", "Brown rice", "Berries"],
+  fats: ["Avocado", "Extra-virgin olive oil", "Almonds", "Walnuts", "Salmon"],
+  meals: {
+    cutting: [
+      "Greek yogurt bowl with berries and oats",
+      "Grilled chicken, quinoa, roasted veggies",
+      "Egg-white omelet + spinach + feta",
+    ],
+    maintenance: [
+      "Salmon, brown rice, asparagus",
+      "Turkey chili with beans",
+      "Tofu stir-fry with mixed vegetables and jasmine rice",
+    ],
+    bulking: [
+      "Whole eggs, oats, peanut butter, banana",
+      "Steak, sweet potato, olive oil-dressed salad",
+      "Lentil curry with rice and extra olive oil",
+    ],
+  },
+};
+
+// 21-question scaffold (labels only; values 1-5)
+const QUESTIONS = [
+  { key: "sleep", label: "Sleep Quality" },
+  { key: "nutrition", label: "Nutrition Quality" },
+  { key: "hydration", label: "Hydration & Electrolytes" },
+  { key: "bodyRel", label: "Physical Self-Relationship" },
+  { key: "breath", label: "Stress Management (Breathing)" },
+  { key: "chatter", label: "Chatter Control" },
+  { key: "compassion", label: "Self-Compassion" },
+  { key: "resilience", label: "Emotional Resilience" },
+  { key: "focus", label: "Mental Focus" },
+  { key: "grit", label: "Resilience Building (Challenges)" },
+  { key: "rhythm", label: "Internal Rhythm (Circadian/Hormonal)" },
+  { key: "spiritual", label: "Spiritual Connection" },
+  { key: "turnToward", label: "Turning Toward (Bids for Connection)" },
+  { key: "conflict", label: "Conflict Management (Four Horsemen)" },
+  { key: "trust", label: "Trust & Loyalty" },
+  { key: "overthink", label: "Overthinking Control" },
+  { key: "intimacy", label: "Intimacy & Desire" },
+  { key: "selfExpand", label: "Self-Expansion" },
+  { key: "connection", label: "Connection Quality" },
+  { key: "internalHealth", label: "Internal Health (Heart/Lungs/Gut)" },
+  { key: "allIn", label: "All-In Commitment" },
+];
+
+// Save/load hooks
+function useLocalState(key, init) {
+  const [v, setV] = useState(() => {
+    try {
+      const s = localStorage.getItem(key);
+      return s ? JSON.parse(s) : init;
+    } catch {
+      return init;
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
+  }, [key, v]);
+  return [v, setV];
+}
+
+// BMR: Mifflin–St Jeor
+function calcBMR({ gender, age, heightCm, weightKg }) {
+  if (!gender || !age || !heightCm || !weightKg) return 0;
+  const s = gender === "female" ? -161 : 5;
+  return 10 * weightKg + 6.25 * heightCm - 5 * age + s;
+}
+
+// Goal calories based on goal trajectory (simple heuristic)
+function targetCalories({ tdee, weightKg, goalWeightKg }) {
+  if (!tdee || !weightKg || !goalWeightKg) return tdee;
+  const delta = goalWeightKg - weightKg; // kg
+  // If losing: 15–20% deficit; if gaining: 10–15% surplus; small change if near
+  if (Math.abs(delta) < 2) return tdee; // maintenance when close
+  if (delta < 0) return Math.round(tdee * 0.82);
+  return Math.round(tdee * 1.1);
+}
+
+// Macro split: protein first (1.8 g/kg), fat 28% kcal, rest carbs
+function macrosFromCalories({ calories, weightKg, proteinGPerKg = 1.8, fatPct = 0.28 }) {
+  if (!calories || !weightKg) return { protein: 0, fat: 0, carbs: 0 };
+  const protein = Math.round(weightKg * proteinGPerKg);
+  const fat = Math.round((calories * fatPct) / 9);
+  const remainingCals = calories - protein * 4 - fat * 9;
+  const carbs = Math.max(0, Math.round(remainingCals / 4));
+  return { protein, fat, carbs };
+}
+
+// Female cycle adjustments (heuristics)
+function cycleAdjustments(phase) {
+  switch (phase) {
+    case "menstruation":
+      return {
+        kcal: +100,
+        waterMl: +300,
+        sleepBonusH: 0.5,
+        notes: [
+          "Prioritize iron (lean red meat, lentils, spinach) + vitamin C",
+          "Gentle cardio/skill; reduce max-effort lifts if fatigue is high",
+        ],
+      };
+    case "follicular":
+      return {
+        kcal: 0,
+        waterMl: 0,
+        sleepBonusH: 0,
+        notes: [
+          "Often best time for strength/HIIT — recover well",
+          "Slightly higher carbs can support intensity",
+        ],
+      };
+    case "ovulation":
+      return {
+        kcal: 0,
+        waterMl: +150,
+        sleepBonusH: 0,
+        notes: [
+          "Peak power window; warm up joints thoroughly",
+          "Stay mindful of injury risk with maximal efforts",
+        ],
+      };
+    case "luteal":
+      return {
+        kcal: +150,
+        waterMl: +400,
+        sleepBonusH: 0.5,
+        notes: [
+          "Cravings rise—front-load protein/fiber",
+          "Favor Zone 2/technique; manage heat load",
+        ],
+      };
+    default:
+      return { kcal: 0, waterMl: 0, sleepBonusH: 0, notes: [] };
+  }
+}
+
+// Cardio/VO2 plan based on scores + age
+function cardioPrescription(age, totalScore) {
+  // totalScore ranges 21–105. Map to minutes + intensity focus
+  const quality = totalScore <= 45 ? "rebuild" : totalScore <= 80 ? "build" : "perform";
+  const z2 = quality === "rebuild" ? 25 : quality === "build" ? 35 : 45; // Zone 2 base minutes/day
+  const hiit = quality === "rebuild" ? 4 : quality === "build" ? 6 : 8; // reps of 1-min hard
+  const rest = 1; // 1-min easy between
+  // Age nudge: >50 reduce HIIT reps slightly
+  const hiitAdj = age >= 50 ? Math.max(3, hiit - 1) : hiit;
+  return {
+    quality,
+    zone2Min: z2,
+    hiitSets: hiitAdj,
+    protocol: `Zone 2 ${z2} min continuous OR ${hiitAdj} x (1 min hard / ${rest} min easy) after warm-up. 2–3 days/wk of HIIT, rest Zone 2 or brisk walking.`,
+  };
+}
+
+// Water target (baseline 35 ml/kg)
+function waterMlPerDay(weightKg, trainingMin = 30) {
+  if (!weightKg) return 0;
+  const base = weightKg * 35; // ml
+  const extra = Math.max(0, trainingMin - 30) * 8; // +8 ml/min beyond 30
+  return Math.round(base + extra);
+}
+
+// Sleep target (base 7.5 h, adjust by stress/sleep scores)
+function sleepHoursTarget(scoreSleep, scoreStress, femaleBonusH = 0) {
+  const base = 7.5;
+  const adj = (scoreSleep <= 2 ? 0.5 : 0) + (scoreStress <= 2 ? 0.5 : 0) + femaleBonusH;
+  return clamp(Math.round((base + adj) * 2) / 2, 7, 9.5);
+}
+
+// Cold plunge guidance (do NOT immediately after heavy lifting)
+function coldPlungePlan(totalScore) {
+  if (totalScore <= 45) {
+    return { temp: "50–59°F (10–15°C)", duration: "1–2 min", freq: "2–3×/wk", note: "Use on rest/skill days; avoid right after strength sessions." };
+  } else if (totalScore <= 80) {
+    return { temp: "48–57°F (9–14°C)", duration: "2–4 min", freq: "3×/wk", note: "Great after Zone 2 or skill; separate from hard lifting by 6–8h." };
+  }
+  return { temp: "45–55°F (7–13°C)", duration: "3–5 min", freq: "3–4×/wk", note: "Keep performance blocks separate from cold exposure to avoid blunting gains." };
+}
+
+function pickVerse(totalScore) {
+  if (totalScore <= 45) return VERSES.peace[0];
+  if (totalScore <= 80) return VERSES.wisdom[0];
+  return VERSES.strength[0];
+}
+
+function pickPrayer(totalScore, name) {
+  if (totalScore <= 45) return PRAYERS.low(name);
+  if (totalScore <= 80) return PRAYERS.medium(name);
+  return PRAYERS.high(name);
+}
+
+function MacroBadge({ label, grams }) {
+  return (
+    <Badge className="text-sm px-3 py-1 rounded-2xl">{label}: <span className="font-semibold ml-1">{grams}g</span></Badge>
+  );
+}
+
+export default function TungstenStandardApp() {
+  // --- Profile Inputs -------------------------------------------------------
+  const [name, setName] = useLocalState("ts_name", "");
+  const [gender, setGender] = useLocalState("ts_gender", "male");
+  const [age, setAge] = useLocalState("ts_age", 30);
+  const [unit, setUnit] = useLocalState("ts_unit", "imperial");
+  const [heightFt, setHeightFt] = useLocalState("ts_h_ft", 5);
+  const [heightIn, setHeightIn] = useLocalState("ts_h_in", 10);
+  const [heightCm, setHeightCm] = useLocalState("ts_h_cm", 178);
+  const [weight, setWeight] = useLocalState("ts_weight", 190);
+  const [goalWeight, setGoalWeight] = useLocalState("ts_goal_weight", 180);
+  const [activity, setActivity] = useLocalState("ts_activity", "moderate");
+  const [cyclePhase, setCyclePhase] = useLocalState("ts_cycle", "follicular");
+
+  // --- 21 Questions ---------------------------------------------------------
+  const [answers, setAnswers] = useLocalState("ts_q", Object.fromEntries(QUESTIONS.map(q => [q.key, 3])));
+
+  const totalScore = useMemo(() => QUESTIONS.reduce((s, q) => s + Number(answers[q.key] || 0), 0), [answers]);
+
+  // --- Calculations ---------------------------------------------------------
+  const heightInCm = unit === "imperial" ? cmFromInches(heightFt, heightIn) : Number(heightCm);
+  const weightInKg = unit === "imperial" ? kgFromLbs(weight) : Number(weight);
+  const goalWeightKg = unit === "imperial" ? kgFromLbs(goalWeight) : Number(goalWeight);
+
+  const bmr = useMemo(() => Math.round(calcBMR({ gender, age: Number(age), heightCm: heightInCm, weightKg: weightInKg })), [gender, age, heightInCm, weightInKg]);
+  const tdee = useMemo(() => Math.round(bmr * (ACTIVITY[activity] || 1.55)), [bmr, activity]);
+  const kcalTargetBase = useMemo(() => targetCalories({ tdee, weightKg: weightInKg, goalWeightKg }), [tdee, weightInKg, goalWeightKg]);
+
+  const femaleAdj = gender === "female" ? cycleAdjustments(cyclePhase) : { kcal: 0, waterMl: 0, sleepBonusH: 0, notes: [] };
+  const kcalTarget = clamp(kcalTargetBase + (femaleAdj.kcal || 0), 1200, 5000);
+  const macros = useMemo(() => macrosFromCalories({ calories: kcalTarget, weightKg: weightInKg }), [kcalTarget, weightInKg]);
+
+  const cardio = useMemo(() => cardioPrescription(Number(age), totalScore), [age, totalScore]);
+  const waterMl = useMemo(() => waterMlPerDay(weightInKg, cardio.zone2Min) + (femaleAdj.waterMl || 0), [weightInKg, cardio, femaleAdj]);
+  const sleepH = useMemo(() => sleepHoursTarget(answers.sleep, answers.breath, femaleAdj.sleepBonusH || 0), [answers, femaleAdj]);
+  const verse = useMemo(() => pickVerse(totalScore), [totalScore]);
+  const prayer = useMemo(() => pickPrayer(totalScore, name), [totalScore, name]);
+  const plunge = useMemo(() => coldPlungePlan(totalScore), [totalScore]);
+
+  // Meal suggestions bucket
+  const goalBucket = useMemo(() => {
+    if (kcalTarget < tdee * 0.95) return "cutting";
+    if (kcalTarget > tdee * 1.05) return "bulking";
+    return "maintenance";
+  }, [kcalTarget, tdee]);
+
+  // UI helpers
+  const number = (v) => (isNaN(Number(v)) ? 0 : Number(v));
+
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-b from-slate-900 via-slate-950 to-black text-slate-100">
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl md:text-5xl font-extrabold tracking-tight text-center"
+        >
+          The Tungsten Standard
+        </motion.h1>
+        <p className="text-center text-slate-300 mt-2">Daily, adaptive guidance for body, mind, and spirit.</p>
+
+        <Tabs defaultValue="profile" className="mt-8">
+          <TabsList className="grid grid-cols-4 bg-slate-800/50">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="checkin">21-Check</TabsTrigger>
+            <TabsTrigger value="plan">Today's Plan</TabsTrigger>
+            <TabsTrigger value="ideas">Food Ideas</TabsTrigger>
+          </TabsList>
+
+          {/* PROFILE TAB */}
+          <TabsContent value="profile" className="mt-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="bg-slate-900/60 border-slate-700">
+                <CardContent className="space-y-4 p-6">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Name</Label>
+                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="(optional)" />
+                    </div>
+                    <div>
+                      <Label>Gender</Label>
+                      <Select value={gender} onValueChange={setGender}>
+                        <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Age</Label>
+                      <Input type="number" min={12} max={100} value={age} onChange={(e)=>setAge(number(e.target.value))} />
+                    </div>
+                    <div>
+                      <Label>Units</Label>
+                      <Select value={unit} onValueChange={setUnit}>
+                        <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="imperial">Imperial</SelectItem>
+                          <SelectItem value="metric">Metric</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {unit === "imperial" ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <Label>Height (ft)</Label>
+                        <Input type="number" min={3} max={7} value={heightFt} onChange={(e)=>setHeightFt(number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Height (in)</Label>
+                        <Input type="number" min={0} max={11} value={heightIn} onChange={(e)=>setHeightIn(number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Weight (lb)</Label>
+                        <Input type="number" min={60} max={500} value={weight} onChange={(e)=>setWeight(number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Goal Weight (lb)</Label>
+                        <Input type="number" min={60} max={500} value={goalWeight} onChange={(e)=>setGoalWeight(number(e.target.value))} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="col-span-1">
+                        <Label>Height (cm)</Label>
+                        <Input type="number" min={120} max={220} value={heightCm} onChange={(e)=>setHeightCm(number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Weight (kg)</Label>
+                        <Input type="number" min={30} max={200} value={weight} onChange={(e)=>setWeight(number(e.target.value))} />
+                      </div>
+                      <div>
+                        <Label>Goal Weight (kg)</Label>
+                        <Input type="number" min={30} max={200} value={goalWeight} onChange={(e)=>setGoalWeight(number(e.target.value))} />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Activity</Label>
+                      <Select value={activity} onValueChange={setActivity}>
+                        <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue placeholder="Select activity" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sedentary">Sedentary</SelectItem>
+                          <SelectItem value="light">Light (1–3 d/wk)</SelectItem>
+                          <SelectItem value="moderate">Moderate (3–5 d/wk)</SelectItem>
+                          <SelectItem value="active">Active (6–7 d/wk)</SelectItem>
+                          <SelectItem value="athlete">Athlete / 2-a-days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {gender === "female" && (
+                      <div>
+                        <Label>Cycle Phase</Label>
+                        <Select value={cyclePhase} onValueChange={setCyclePhase}>
+                          <SelectTrigger className="bg-slate-800 border-slate-700"><SelectValue placeholder="Select phase" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="menstruation">Menstruation</SelectItem>
+                            <SelectItem value="follicular">Follicular</SelectItem>
+                            <SelectItem value="ovulation">Ovulation</SelectItem>
+                            <SelectItem value="luteal">Luteal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator className="bg-slate-700" />
+
+                  <div className="grid grid-cols-2 gap-3 text-sm text-slate-300">
+                    <div>BMR: <span className="font-semibold text-slate-100">{bmr || "—"}</span> kcal</div>
+                    <div>TDEE: <span className="font-semibold text-slate-100">{tdee || "—"}</span> kcal</div>
+                    <div>Target Intake: <span className="font-semibold text-slate-100">{kcalTarget || "—"}</span> kcal</div>
+                    <div>Goal Mode: <span className="font-semibold text-slate-100 capitalize">{goalBucket}</span></div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-900/60 border-slate-700">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2"><UtensilsCrossed className="h-5 w-5"/>Daily Macros</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <MacroBadge label="Protein" grams={macros.protein} />
+                    <MacroBadge label="Carbs" grams={macros.carbs} />
+                    <MacroBadge label="Fat" grams={macros.fat} />
+                  </div>
+                  {gender === "female" && (
+                    <div className="mt-4 text-sm text-slate-300">
+                      <div className="font-medium">Cycle Adjustments:</div>
+                      <ul className="list-disc list-inside">
+                        {femaleAdj.notes.map((n, i) => <li key={i}>{n}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* 21-CHECK TAB */}
+          <TabsContent value="checkin" className="mt-6">
+            <Card className="bg-slate-900/60 border-slate-700">
+              <CardContent className="p-6 space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {QUESTIONS.map((q) => (
+                    <div key={q.key} className="bg-slate-800/50 rounded-2xl p-4">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-slate-200">{q.label}</Label>
+                        <Badge variant="secondary" className="bg-slate-700 text-slate-100">{answers[q.key]}</Badge>
+                      </div>
+                      <Slider
+                        value={[answers[q.key]]}
+                        min={1}
+                        max={5}
+                        step={1}
+                        className="mt-3"
+                        onValueChange={(v)=> setAnswers({ ...answers, [q.key]: v[0] })}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center text-slate-300">Total Score: <span className="font-bold text-slate-100">{totalScore}</span> / 105</div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* PLAN TAB */}
+          <TabsContent value="plan" className="mt-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Cardio */}
+              <Card className="bg-slate-900/60 border-slate-700">
+                <CardContent className="p-6 space-y-2">
+                  <h3 className="font-semibold mb-1 flex items-center gap-2"><HeartPulse className="h-5 w-5"/>Cardio — VO₂ Focus</h3>
+                  <p className="text-sm text-slate-300">Quality: <span className="capitalize font-semibold text-slate-100">{cardio.quality}</span></p>
+                  <p className="text-sm text-slate-300">Zone 2: <span className="font-semibold text-slate-100">{cardio.zone2Min} min</span></p>
+                  <p className="text-sm text-slate-300">HIIT: <span className="font-semibold text-slate-100">{cardio.hiitSets} × 1′ hard / 1′ easy</span></p>
+                  <p className="text-sm text-slate-300">Protocol: {cardio.protocol}</p>
+                </CardContent>
+              </Card>
+
+              {/* Hydration & Sleep */}
+              <Card className="bg-slate-900/60 border-slate-700">
+                <CardContent className="p-6 space-y-2">
+                  <h3 className="font-semibold mb-1 flex items-center gap-2"><Droplets className="h-5 w-5"/>Hydration & Sleep</h3>
+                  <p className="text-sm text-slate-300">Water Target: <span className="font-semibold text-slate-100">{Math.round(waterMl/100)/10} L</span> / day</p>
+                  <p className="text-sm text-slate-300 flex items-center gap-2"><Moon className="h-4 w-4"/>Sleep Target: <span className="font-semibold text-slate-100">{sleepH} h</span> tonight</p>
+                  {gender === "female" && femaleAdj.sleepBonusH > 0 && (
+                    <p className="text-xs text-slate-400">Cycle bonus applied: +{femaleAdj.sleepBonusH} h</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Cold Plunge */}
+              <Card className="bg-slate-900/60 border-slate-700">
+                <CardContent className="p-6 space-y-2">
+                  <h3 className="font-semibold mb-1 flex items-center gap-2"><Snowflake className="h-5 w-5"/>Cold Plunge</h3>
+                  <p className="text-sm text-slate-300">Temp: <span className="font-semibold text-slate-100">{plunge.temp}</span></p>
+                  <p className="text-sm text-slate-300">Duration: <span className="font-semibold text-slate-100">{plunge.duration}</span></p>
+                  <p className="text-sm text-slate-300">Frequency: <span className="font-semibold text-slate-100">{plunge.freq}</span></p>
+                  <p className="text-xs text-slate-400">{plunge.note}</p>
+                </CardContent>
+              </Card>
+
+              {/* Scripture & Prayer */}
+              <Card className="bg-slate-900/60 border-slate-700 lg:col-span-2">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2 flex items-center gap-2"><BookOpen className="h-5 w-5"/>Verse of the Day</h3>
+                  <blockquote className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700">
+                    <p className="italic">“{verse.text}”</p>
+                    <div className="text-right mt-2 text-slate-300">— {verse.ref} (NKJV)</div>
+                  </blockquote>
+                  <h3 className="font-semibold mt-4 mb-2">Daily Prayer</h3>
+                  <Textarea className="bg-slate-800/60 border-slate-700" rows={3} value={prayer} readOnly />
+                </CardContent>
+              </Card>
+
+              {/* Macros details */}
+              <Card className="bg-slate-900/60 border-slate-700">
+                <CardContent className="p-6 space-y-2">
+                  <h3 className="font-semibold mb-1 flex items-center gap-2"><FlaskConical className="h-5 w-5"/>Macro Targets</h3>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <MacroBadge label="Protein" grams={macros.protein} />
+                    <MacroBadge label="Carbs" grams={macros.carbs} />
+                    <MacroBadge label="Fat" grams={macros.fat} />
+                  </div>
+                  <p className="text-sm text-slate-300">Calories: <span className="font-semibold text-slate-100">{kcalTarget}</span> kcal/day</p>
+                  <p className="text-xs text-slate-400">Protein set ~1.8 g/kg; Fat ~28% kcal; Carbs = remainder.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* FOOD IDEAS TAB */}
+          <TabsContent value="ideas" className="mt-6">
+            <Card className="bg-slate-900/60 border-slate-700">
+              <CardContent className="p-6 space-y-4">
+                <h3 className="font-semibold">Smart Food Ideas ({goalBucket})</h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div>
+                    <div className="text-slate-300 text-sm mb-1">Proteins</div>
+                    <ul className="list-disc list-inside text-slate-100/90 text-sm">
+                      {FOOD_IDEAS.protein.map((p,i)=>(<li key={i}>{p}</li>))}
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="text-slate-300 text-sm mb-1">Carbs</div>
+                    <ul className="list-disc list-inside text-slate-100/90 text-sm">
+                      {FOOD_IDEAS.carbs.map((p,i)=>(<li key={i}>{p}</li>))}
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="text-slate-300 text-sm mb-1">Fats</div>
+                    <ul className="list-disc list-inside text-slate-100/90 text-sm">
+                      {FOOD_IDEAS.fats.map((p,i)=>(<li key={i}>{p}</li>))}
+                    </ul>
+                  </div>
+                </div>
+
+                <Separator className="bg-slate-700" />
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {FOOD_IDEAS.meals[goalBucket].map((m, i) => (
+                    <div key={i} className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-sm">{m}</div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-slate-400 mt-2">Tip: Distribute protein evenly across 3–5 meals (≥25–35g each). Front-load fiber and hydrate consistently.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-8 text-center text-xs text-slate-500">
+          <p>Educational guidance only, not medical advice. Consult your clinician for personal recommendations.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
