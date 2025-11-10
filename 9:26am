@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The Tungsten Standard</title>
+<meta name="theme-color" content="#111827" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Tungsten" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='black'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Times New Roman' font-size='160' font-weight='700' fill='white'%3ET%3C/text%3E%3C/svg%3E" />
+<style>
+  /* ---
+    THE TUNGSTEN STANDARD - NEW STYLESHEET (V2)
+    A modern, tab-based, professional UI.
+  --- */
+  :root {
+    --bg: #F9FAFB;
+    --bg-card: #FFFFFF;
+    --text-primary: #111827;
+    --text-secondary: #4B5563;
+    --border-color: #E5E7EB;
+    --accent: #111827;
+    --accent-text: #FFFFFF;
+    --accent-light: #F3F4F6;
+    --danger: #DC2626;
+    --warning: #F59E0B;
+    --success: #16A34A;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #030712;
+      --bg-card: #111827;
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --border-color: #374151;
+      --accent: #F9FAFB;
+      --accent-text: #111827;
+      --accent-light: #1F2937;
+    }
+  }
+
+  html { font-size: 100%; }
+  body {
+    margin: 0;
+    padding-top: 60px; /* Space for the top header */
+    padding-bottom: 80px; /* Space for the sticky footer */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  * { box-sizing: border-box; }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  
+  /* --- NEW: Header Bar --- */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    height: 60px;
+    z-index: 100;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+  }
+  .header-actions { display: flex; gap: 0.5rem; }
+
+  h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 1rem; }
+  h3 { font-size: 1.125rem; font-weight: 700; margin: 1.5rem 0 0.75rem; color: var(--text-primary); }
+  p { line-height: 1.6; margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.95rem; }
+
+  .card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.03), 0 1px 2px 0 rgba(0,0,0,0.02);
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  .grid-item label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+  
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    outline: none;
+  }
+  input[type="number"]:focus, input[type="text"]:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background-color: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+  }
+  .btn.hide { display: none; }
+  
+  .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  /* --- NEW: Tab Navigation --- */
+  .tab-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .tab-nav button {
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+  }
+  .tab-nav button.active {
+    background-color: var(--accent-light);
+    color: var(--text-primary);
+    border-color: var(--accent);
+  }
+  
+  /* --- NEW: Tab Content --- */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  
+  /* --- NEW: Check-in Styles --- */
+  .check-in-group {
+    border-top: 1px dashed var(--border-color);
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+  .likert-row {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+    background-color: var(--bg);
+  }
+  .likert-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .likert-note {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem;
+  }
+  .likert { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .likert button {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+  }
+  .likert button.active {
+    background-color: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+    transform: scale(1.05);
+  }
+  
+  /* --- NEW: Feedback Block --- */
+  .feedback-block {
+    border-left: 4px solid var(--border-color);
+    padding: 1.5rem;
+    background-color: var(--accent-light);
+    border-radius: 8px;
+  }
+  .feedback-block p {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+  .feedback-block p:last-child { margin-bottom: 0; }
+  .feedback-block strong { color: var(--text-primary); font-weight: 700; }
+  .feedback-block .call-out {
+    border-left: 4px solid var(--warning);
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+  .feedback-block .call-out-bad {
+    border-left: 4px solid var(--danger);
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  
+  .pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    background-color: var(--bg);
+    text-transform: uppercase;
+  }
+  .pill.success { border-color: var(--success); color: var(--success); }
+  .pill.warning { border-color: var(--warning); color: var(--warning); }
+  .pill.danger { border-color: var(--danger); color: var(--danger); }
+  
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
+  .kpi {
+    background-color: var(--accent-light);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .kpi small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+  .kpi b {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .verse { border-left: 3px solid var(--border-color); padding-left: 1rem; background-color: var(--accent-light); padding: 1rem; border-radius: 8px;}
+  .verse p { font-style: italic; color: var(--text-primary); }
+  .verse small { color: var(--text-secondary); }
+
+  /* --- NEW: Sticky Footer --- */
+  .sticky {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 100;
+  }
+  .sticky-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .sticky .block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .sticky small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+  .sticky b {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  @media (max-width: 600px) {
+    .sticky .block b { font-size: 1rem; }
+    .sticky-inner { gap: 0.5rem; }
+    .header h1 { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>The Tungsten Standard</h1>
+    <div class="header-actions">
+      <button id="installBtn" class="btn primary hide">Install</button>
+      <button id="exportBtn" class="btn">Print</button>
+    </div>
+  </header>
+
+  <div class="container" style="padding-top: 0;">
+    <nav class="tab-nav">
+      <button id="tabBtn-checkin" class="tab-btn active">THE STANDARD</button>
+      <button id="tabBtn-plan" class="tab-btn">THE PLAN</button>
+      <button id="tabBtn-mindset" class="tab-btn">PROFILE & MINDSET</button>
+    </nav>
+
+    <div id="tab-checkin" class="tab-content active">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+          <h2>The Daily Check-In</h2>
+          <span id="scorePill" class="pill">SCORE: —</span>
+        </div>
+        <p>Answer the following questions on a scale of 1 (Struggling) to 5 (Thriving). This is the core of the Tungsten Standard.</p>
+        <div id="checkInList">
+          </div>
+      </div>
+      
+      <div class="card">
+        <h2>Today's Actionable Feedback</h2>
+        <p>This feedback is generated *from your answers* and based on the research from world-class experts.</p>
+        <div id="checkInFeedback" class="feedback-block">
+          <p>Your personalized feedback will appear here once you answer the questions.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div id="tab-plan" class="tab-content">
+      <div class="card">
+        <h2>Today's Action Plan</h2>
+        <p>This is your protocol for the day, based on your profile and check-in.</p>
+        <div id="planBlocks" style="margin-top: 1.5rem;"></div>
+      </div>
+      
+      <div class="card">
+        <h2>Nutrition & Health Plan</h2>
+        <h3>Macronutrient Targets (Dr. Hyman, Jenkins)</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><small>Target kcal</small><b id="targetKcal">—</b></div>
+          <div class="kpi"><small>Protein (g)</small><b id="gP">—</b></div>
+          <div class="kpi"><small>Carbs (g)</small><b id="gC">—</b></div>
+          <div class="kpi"><small>Fats (g)</small><b id="gF">—</b></div>
+        </div>
+        <div class="row" style="margin-top: 1rem;"><button id="ideasBtn" class="btn">Meal Ideas</button></div>
+        <div id="ideas" class="hide" style="margin-top:1rem;"></div>
+      </div>
+
+      <div class="card">
+        <h2>Cardio Performance (VO2 & Zones)</h2>
+        <p style="font-size: 0.875rem; color: var(--text-secondary);">Based on research from Wu Tsai Alliance & Dr. Michael Joyner.</p>
+        <div class="kpi-grid">
+          <div class="kpi"><small>HRmax (est.)</small><b id="hrMax">—</b></div>
+          <div class="kpi"><small>HRrest</small><b id="hrRest">—</b></div>
+          <div class="kpi"><small>VO₂max (est.)</small><b id="vo2max">—</b></div>
+          <div class="kpi"><small>Classification</small><b id="vo2class">—</b></div>
+        </div>
+        
+        <h3 style="margin-top: 1.5rem;">Today's VO₂ Max Goal</h3>
+        <div id="vo2target" class="feedback-block"></div>
+        
+        <h3 style="margin-top: 1.5rem;">Target Heart-Rate Zones</h3>
+        <div id="zoneTable" class="kpi-grid"></div>
+      </div>
+      
+      <div class="card">
+        <h2>Sleep & Recovery Plan</h2>
+        <h3 style="margin-top:0;">Sleep (Dr. Matthew Walker)</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><small>Sleep Need</small><b id="sleepNeed">— h</b></div>
+          <div class="kpi"><small>Wind-Down</small><b id="sleepBreath">—</b></div>
+        </div>
+        <div id="sleepDeepDive" class="feedback-block" style="margin-top: 1rem;"></div>
+        
+        <h3 style="margin-top: 1.5rem;">Cold Exposure Protocol (Wim Hof)</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><small>Recommend</small><b id="coldYesNo">—</b></div>
+          <div class="kpi"><small>Timing</small><b id="coldTiming">—</b></div>
+          <div class="kpi" id="coldTempKpi"><small>Temp</small><b id="coldTemp">—</b></div>
+          <div class="kpi" id="coldDurKpi"><small>Duration</small><b id="coldDur">—</b></div>
+        </div>
+        <p id="coldWhy" style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;"></p>
+      </div>
+    </div>
+    
+    <div id="tab-mindset" class="tab-content">
+      <div class="card">
+        <h2>Profile & Physicals</h2>
+        <p>Your physical data informs all calculations, from your VO2 max to your macronutrient targets.</p>
+        <div class="grid">
+          <div class="grid-item">
+            <label for="sex">Biological Sex</label>
+            <select id="sex"><option value="female">Female</option><option value="male">Male</option></select>
+          </div>
+          <div class="grid-item">
+            <label for="age">Age</label>
+            <input id="age" type="number" value="30" />
+          </div>
+          <div class="grid-item">
+            <label for="rhr">Resting HR (bpm)</label>
+            <input id="rhr" type="number" value="55" />
+          </div>
+          
+          <div class="grid-item" id="heightUS">
+            <label>Height (ft / in)</label>
+            <div class="row">
+              <input id="heightFt" type="number" value="5" /><input id="heightIn" type="number" value="10" />
+            </div>
+          </div>
+          <div class="grid-item hide" id="heightMetric">
+            <label for="heightCm">Height (cm)</label>
+            <input id="heightCm" type="number" value="177.8" />
+          </div>
+          
+          <div class="grid-item" id="weightUS">
+            <label for="weightLb">Weight (lbs)</label>
+            <input id="weightLb" type="number" value="170" />
+          </div>
+          <div class="grid-item hide" id="weightMetric">
+            <label for="weightKg">Weight (kg)</label>
+            <input id="weightKg" type="number" value="77.1" />
+          </div>
+
+          <div class="grid-item">
+            <label>Units</label>
+            <button id="unitsBtn" class="btn" style="width: 100%;">Toggle Units</button>
+          </div>
+        </div>
+        
+        <h3 id="cycleSuppCardHeader" class="hide">Supplement Considerations (Female)</h3>
+        <div id="cycleSuppCard" class="hide">
+          <div id="cycleSupp" class="feedback-block"></div>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Educational only. Based on research from Drs. Clancy, Schisterman, & Colenso-Semple.</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Mindset Tools</h2>
+        <h3>Self-Talk (Drs. Kross & Turow)</h3>
+        <div id="selfTalk" class="verse"></div>
+        
+        <h3>Breathing Session (SEAL Box Breathing)</h3>
+        <div id="breathBlock" class="verse" style="margin-top: 1rem;"></div>
+        
+        <h3>Daily Prayer / Scripture (NKJV)</h3>
+        <div id="prayer" class="verse" style="margin-top: 1rem;"></div>
+        <div id="scripture" class="verse" style="margin-top: 1rem;"></div>
+      </div>
+    </div>
+    
+  </div> <div class="sticky" role="status" aria-live="polite">
+    <div class="sticky-inner">
+      <div class="block"><small>Holistic</small><b id="sumScore">—%</b></div>
+      <div class="block"><small>Relational</small><b id="sumRelational">—%</b></div>
+      <div class="block"><small>Mental</small><b id="sumMental">—%</b></div>
+      <div class="block"><small>Physical</small><b id="sumPhysical">—%</b></div>
+    </div>
+  </div>
+
+<script>
+/***** PWA bootstrap *****/
+(function setupPWA(){
+  const svg = size => `<?xml version="1.0"?><svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'><rect width='100%' height='100%' rx='${Math.round(size*0.22)}' fill='black'/><text x='50%' y='54%' font-family='Times New Roman' font-weight='700' font-size='${Math.round(size*0.7)}' text-anchor='middle' fill='white'>T</text></svg>`;
+  const makeIcon = size => URL.createObjectURL(new Blob([svg(size)], { type: 'image/svg+xml' }));
+  const manifest = { name:'The Tungsten Standard', short_name:'Tungsten', start_url:'.', display:'standalone', background_color:'#030712', theme_color:'#111827', icons:[ {src:makeIcon(192),sizes:'192x192',type:'image/svg+xml'}, {src:makeIcon(512),sizes:'512x512',type:'image/svg+xml'} ] };
+  const manifestURL = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type:'application/json' }));
+  const link=document.createElement('link'); link.rel='manifest'; link.href=manifestURL; document.head.appendChild(link);
+  if('serviceWorker' in navigator){
+    const swCode = `const CACHE='tungsten-standard-v1.1';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll([self.registration.scope])).then(()=>self.skipWaiting()))});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim())});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(h=>h||fetch(e.request).then(res=>{const cp=res.clone();caches.open(CACHE).then(c=>{if(e.request.method==='GET'&&new URL(e.request.url).origin===location.origin)c.put(e.request,cp);});return res;})))})`;
+    const swURL = URL.createObjectURL(new Blob([swCode], { type:'text/javascript' }));
+    navigator.serviceWorker.register(swURL).catch(()=>{});
+  }
+  let deferredPrompt=null; const installBtn=document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt',(e=>{e.preventDefault();deferredPrompt=e;installBtn.classList.remove('hide');}));
+  installBtn?.addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;installBtn.classList.add('hide');deferredPrompt=null;});
+})();
+</script>
+
+<script>
+// --- TUNGSTEN STANDARD APP SCRIPT (V2) ---
+(function TungstenStandardApp() {
+
+  /***** CONSTANTS & CONTENT *****/
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const STORAGE_KEY = 'tungstenStandard-v1.2'; // Updated key
+  const ACTIVITY = { sedentary: 1.2, light: 1.375, moderate: 1.55, heavy: 1.725, athlete: 1.9 };
+  const FAT_PER_KG = 0.9;
+  const FIBER_PER_1000_KCAL = 14;
+
+  const VO2_CLASSIFICATION = {
+    male: { '18-25': [39, 44, 49, 54], '26-35': [36, 41, 46, 51], '36-45': [32, 37, 42, 47], '46-55': [29, 34, 38, 43], '56-65': [26, 31, 35, 40], '65+':   [23, 28, 32, 36] },
+    female: { '18-25': [33, 38, 43, 48], '26-35': [30, 35, 39, 44], '36-45': [27, 31, 36, 40], '46-55': [25, 29, 33, 37], '56-65': [22, 26, 30, 34], '65+':   [20, 24, 28, 31] }
+  };
+  
+  const CHECK_IN_QUESTIONS = [
+    { id: 'q_sleep', group: 'Physical', label: 'Sleep Quality (Dr. Matthew Walker)', note: 'How restorative and energizing was your sleep?' },
+    { id: 'q_nutrition', group: 'Physical', label: 'Nutrition Quality (Dr. Mark Hyman)', note: 'How well did you fuel your body with whole, nutrient-dense foods?' },
+    { id: 'q_hydration', group: 'Physical', label: 'Hydration & Electrolytes', note: 'How well did you manage your fluid and electrolyte intake?' },
+    { id: 'q_energy', group: 'Mental', label: 'Physical Energy & Fatigue (Reverse-Scored)', note: '1 = Exhausted, 5 = Fresh & Energized', reverse: true },
+    { id: 'q_mood', group: 'Mental', label: 'Emotional Mood (Dr. Richard Davidson)', note: 'How would you rate your overall emotional baseline today?' },
+    { id: 'q_chatter', group: 'Mental', label: 'Internal "Chatter" (Dr. Ethan Kross) (Reverse-Scored)', note: '1 = Loud & Overwhelming, 5 = Quiet & Controlled', reverse: true },
+    { id: 'q_compassion', group: 'Mental', label: 'Self-Compassion (Dr. Rachel Turow)', note: 'How kindly and constructively did you speak to yourself?' },
+    { id: 'q_connection', group: 'Relational', label: 'Relational Connection (Drs. Perel & Gottman)', note: 'How connected (emotionally & physically) do you feel to your partner?' },
+    { id: 'q_conflict', group: 'Relational', label: 'Conflict & Communication (Dr. John Gottman)', note: 'How well did you avoid the "Four Horsemen" (Criticism, Contempt, etc.)?' },
+    { id: 'q_support', group: 'Relational', label: 'Support & Security (Dr. Robert Waldinger)', note: 'How well did you "turn toward" your partner and make them feel secure?' },
+    { id: 'q_growth', group: 'Relational', label: 'Growth & Novelty (Drs. Lewandowski & Perel)', note: 'How well did you contribute to fun, growth, or "self-expansion" in your relationship?' }
+  ];
+
+  const MEALS={breakfast:['Greek yogurt (2%) + whey + berries + honey','Eggs + egg whites + sourdough + fruit','Overnight oats (milk) + chia + banana (+ whey)'],lunch:['Chicken rice bowl (olive oil) + veggies','Turkey sandwich + cheese + fruit','Tuna pasta salad + spinach'],dinner:['Salmon + potatoes + salad (olive oil)','Beef tacos (corn tortillas) + guac','Stir-fry tofu/chicken + rice'],snack:['Protein shake + banana','Cottage cheese + crackers','Trail mix (portion) + fruit']};
+  const NKJV_BASE={courage:[{ref:'Joshua 1:9',txt:'Be strong and of good courage...'},{ref:'Deuteronomy 31:6',txt:'He will not leave you nor forsake you.'}],focus:[{ref:'Colossians 3:23',txt:'Whatever you do, do it heartily, as to the Lord and not to men.'},{ref:'Philippians 3:14',txt:'I press toward the goal...'}],peace:[{ref:'Philippians 4:6–7',txt:'Be anxious for nothing... and the peace of God...'},{ref:'John 14:27',txt:'Peace I leave with you...'}],strength:[{ref:'Isaiah 40:31',txt:'Those who wait on the LORD shall renew their strength...'},{ref:'Psalm 18:32–33',txt:'It is God who arms me with strength...'}],endurance:[{ref:'Hebrews 12:1–2',txt:'...let us run with endurance the race...'}],help:[{ref:'Psalm 46:1',txt:'God is our refuge and strength...'},{ref:'Isaiah 41:10',txt:'Fear not, for I am with you...'}],hope:[{ref:'Romans 15:13',txt:'Now may the God of hope fill you with all joy and peace...'}],recovery:[{ref:'Matthew 11:28–29',txt:'Come to Me, all you who labor...'}],victory:[{ref:'1 Corinthians 9:24–25',txt:'Run in such a way that you may obtain it...'}]};
+  const NKJV = (()=>{const extra=(window.NKJV_EXTRA||{}); const out={}; const themes=new Set([...Object.keys(NKJV_BASE),...Object.keys(extra)]); themes.forEach(t=>{out[t]=[...(NKJV_BASE[t]||[]),...((extra[t]||[]))];}); return out;})();
+  const BREATH={downshift:[{title:'Physiological Sighs (Huberman)',detail:'Nasal inhale; top-up sniff; long slow exhale.',duration:'3-5 min'},{title:'4-7-8 (Dr. Weil)',detail:'In 4 • Hold 7 • Out 8.',duration:'3-5 min'}],focus:[{title:'Box 4-4-4-4 (SEALs)',detail:'In 4 • Hold 4 • Out 4 • Hold 4.',duration:'3-6 min'}]};
+  const PRAYERS=['Lord, grant me wisdom, steady breath, and strength to honor You in every choice today. Amen.','Father, guide my steps, protect my mind from distraction, and help me serve others with joy. Amen.'];
+  const SELF_TALK={female:{boost:['I am capable, composed, and powerful.'],focus:['I aim my attention where it matters.'],calm:['I slow my breath and lead my body.'],grit:['Discipline over mood — I execute.']},male:{boost:['I bring calm focus and decisive action.','I do the hard things well.'],focus:['Laser on the next rep; nothing extra.'],calm:['I stay composed; my breath steadies my mind.'],grit:['Discipline over mood — I execute.']}};
+
+  /***** HELPER FUNCTIONS *****/
+  const $ = id => document.getElementById(id);
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const kgFromLbs = lbs => (lbs || 0) * 0.45359237;
+  const lbsFromKg = kg => (kg || 0) / 0.45359237;
+  const cmFromFtIn = (ft, inch) => ((Number(ft) || 0) * 12 + (Number(inch) || 0)) * 2.54;
+  const ftInFromCm = (cm) => {
+    const totalInches = (cm || 0) / 2.54;
+    const ft = Math.floor(totalInches / 12);
+    const inch = Math.round((totalInches % 12) * 10) / 10;
+    return { ft, inch };
+  };
+  const r = (n, f = 0) => n == null ? null : Number(n.toFixed(f));
+  const display = (el, show) => el.style.display = show ? 'block' : 'none';
+  const displayGrid = (el, show) => el.style.display = show ? 'grid' : 'none';
+  
+  function getBag(key){try{const raw=localStorage.getItem(key);if(!raw)return{date:todayKey,used:[]};const o=JSON.parse(raw);if(!o||o.date!==todayKey)return{date:todayKey,used:[]};return o;}catch{return{date:todayKey,used:[]};}}
+  function setBag(key,bag){try{localStorage.setItem(key,JSON.stringify(bag));}catch{}}
+  function nonRepeatingPick(key,arr,count){const bag=getBag(key);let pool=arr.map((v,i)=>({v,i})).filter(x=>!bag.used.includes(x.i));if(pool.length<count){bag.used=[];setBag(key,bag);} const bag2=getBag(key);let pool2=arr.map((v,i)=>({v,i})).filter(x=>!bag2.used.includes(x.i));for(let i=pool2.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool2[i],pool2[j]]=[pool2[j],pool2[i]];}const picks=pool2.slice(0,count);picks.forEach(p=>bag2.used.push(p.i));setBag(key,bag2);return picks.map(p=>p.v);}
+
+  /***** DOM ELEMENTS *****/
+  const els = {
+    // Tabs
+    tabCheckin: $("tab-checkin"), tabPlan: $("tab-plan"), tabMindset: $("tab-mindset"),
+    tabBtnCheckin: $("tabBtn-checkin"), tabBtnPlan: $("tabBtn-plan"), tabBtnMindset: $("tabBtn-mindset"),
+    
+    // Profile
+    sex: $("sex"), age: $("age"), rhr: $("rhr"),
+    heightUS: $("heightUS"), heightFt: $("heightFt"), heightIn: $("heightIn"),
+    heightMetric: $("heightMetric"), heightCm: $("heightCm"),
+    weightUS: $("weightUS"), weightLb: $("weightLb"),
+    weightMetric: $("weightMetric"), weightKg: $("weightKg"),
+    unitsBtn: $("unitsBtn"), exportBtn: $("exportBtn"), installBtn: $("installBtn"),
+    
+    // Plan
+    activity: $("activity"), sleepLast: $("sleepLast"), sessionType: $("sessionType"),
+    planBlocks: $("planBlocks"),
+    
+    // Check-In
+    checkInList: $("checkInList"),
+    checkInFeedback: $("checkInFeedback"),
+    scorePill: $("scorePill"),
+
+    // Nutrition
+    targetKcal: $("targetKcal"), gP: $("gP"), gC: $("gC"), gF: $("gF"),
+    ideasBtn: $("ideasBtn"), ideas: $("ideas"),
+    cycleSuppCard: $("cycleSuppCard"), cycleSupp: $("cycleSupp"), cycleSuppCardHeader: $("cycleSuppCardHeader"),
+    
+    // Cardio
+    hrMax: $("hrMax"), hrRest: $("hrRest"), zoneTable: $("zoneTable"),
+    vo2max: $("vo2max"), vo2class: $("vo2class"), vo2target: $("vo2target"),
+    
+    // Recovery
+    coldYesNo: $("coldYesNo"), coldTiming: $("coldTiming"), 
+    coldTemp: $("coldTemp"), coldDur: $("coldDur"), 
+    coldTempKpi: $("coldTempKpi"), coldDurKpi: $("coldDurKpi"), coldWhy: $("coldWhy"),
+    sleepNeed: $("sleepNeed"), sleepBreath: $("sleepBreath"), sleepDeepDive: $("sleepDeepDive"),
+    
+    // Mindset
+    selfTalk: $("selfTalk"), breathBlock: $("breathBlock"), prayer: $("prayer"), scripture: $("scripture"),
+    
+    // Sticky Footer
+    sumScore: $("sumScore"), sumRelational: $("sumRelational"), 
+    sumMental: $("sumMental"), sumPhysical: $("sumPhysical")
+  };
+
+  /***** STATE MANAGEMENT *****/
+  let state = {
+    units: 'us',
+    sex: 'female',
+    age: 30,
+    rhr: 55,
+    heightFt: 5,
+    heightIn: 10,
+    heightCm: 177.8,
+    weightLb: 170,
+    weightKg: 77.1,
+    activity: 'moderate',
+    sleepLast: 7.5,
+    sessionType: 'hypertrophy',
+    checkInAnswers: {}
+  };
+  CHECK_IN_QUESTIONS.forEach(q => state.checkInAnswers[q.id] = 3);
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) { console.warn('Failed to save state', e); }
+  }
+
+  function loadState() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const loaded = JSON.parse(stored);
+        // Clean merge: only update keys that exist in default state
+        Object.keys(state).forEach(key => {
+          if (loaded[key] !== undefined) {
+            state[key] = loaded[key];
+          }
+        });
+        
+        // Ensure checkInAnswers is fully populated
+        let loadedAnswers = loaded.checkInAnswers || {};
+        CHECK_IN_QUESTIONS.forEach(q => {
+          state.checkInAnswers[q.id] = loadedAnswers[q.id] || 3;
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to load state, using defaults', e);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+  
+  function syncDomFromState() {
+    els.sex.value = state.sex;
+    els.age.value = state.age;
+    els.rhr.value = state.rhr || '';
+    els.heightFt.value = state.heightFt;
+    els.heightIn.value = state.heightIn;
+    els.heightCm.value = state.heightCm;
+    els.weightLb.value = state.weightLb;
+    els.weightKg.value = state.weightKg;
+    els.activity.value = state.activity;
+    els.sleepLast.value = state.sleepLast;
+    els.sessionType.value = state.sessionType;
+    toggleUnitViews(state.units);
+  }
+
+  /***** UI BUILDERS *****/
+  function buildCheckIn() {
+    els.checkInList.innerHTML = '';
+    let currentGroup = '';
+    CHECK_IN_QUESTIONS.forEach(q => {
+      if (q.group !== currentGroup) {
+        currentGroup = q.group;
+        const h3 = document.createElement('h3');
+        h3.className = 'check-in-group';
+        h3.textContent = `${currentGroup} Health`;
+        els.checkInList.appendChild(h3);
+      }
+      
+      const row = document.createElement('div');
+      row.className = 'likert-row';
+      row.innerHTML = `<label class="likert-label">${q.label}</label><p class="likert-note">${q.note}</p>`;
+      
+      const group = document.createElement('div');
+      group.className = 'likert';
+      
+      [1, 2, 3, 4, 5].forEach(v => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = v;
+        const isActive = state.checkInAnswers[q.id] === v;
+        b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) b.classList.add('active');
+        
+        b.addEventListener('click', () => {
+          state.checkInAnswers[q.id] = v;
+          buildCheckIn(); // Re-render
+          recalculateAndSave();
+        });
+        group.appendChild(b);
+      });
+      row.appendChild(group);
+      els.checkInList.appendChild(row);
+    });
+  }
+
+  function toggleUnitViews(newUnits) {
+    const isUS = newUnits === 'us';
+    display(els.heightUS, isUS);
+    display(els.weightUS, isUS);
+    display(els.heightMetric, !isUS);
+    display(els.weightMetric, !isUS);
+    els.unitsBtn.textContent = isUS ? 'Using US (lbs/ft)' : 'Using Metric (kg/cm)';
+  }
+
+  /***** CALCULATION LOGIC *****/
+  
+  function _calculateCheckIn(answers) {
+    let scores = { Physical: { sum: 0, total: 0 }, Mental: { sum: 0, total: 0 }, Relational: { sum: 0, total: 0 } };
+    let feedback = [];
+    
+    CHECK_IN_QUESTIONS.forEach(q => {
+      let score = answers[q.id];
+      if (q.reverse) { score = 6 - score; }
+      scores[q.group].sum += score;
+      scores[q.group].total += 5;
+    });
+
+    const p = (s) => Math.round((s.sum / s.total) * 100);
+    const physicalScore = p(scores.Physical);
+    const mentalScore = p(scores.Mental);
+    const relationalScore = p(scores.Relational);
+    const totalScore = Math.round((scores.Physical.sum + scores.Mental.sum + scores.Relational.sum) / (scores.Physical.total + scores.Mental.total + scores.Relational.total) * 100);
+
+    // --- Actionable Feedback Logic ---
+    if (answers.q_sleep <= 2) {
+      feedback.push("<p class='call-out-bad'><strong>Sleep Warning:</strong> A low score here impacts *everything*. <strong>Dr. Matthew Walker's</strong> research shows poor sleep harms memory, immunity, and emotional control. Your #1 priority today must be a consistent wind-down and bedtime.</p>");
+    }
+    if (answers.q_nutrition <= 2) {
+      feedback.push("<p class='call-out'><strong>Nutrition Alert:</strong> You are likely on a 'blood sugar rollercoaster.' <strong>Dr. Mark Hyman</strong> links this to poor mood and energy. Focus on adding protein & healthy fat to every meal today. (e.g., add almonds, avocado, or chicken).</p>");
+    }
+    if (answers.q_chatter <= 2) {
+      feedback.push("<p class='call-out-bad'><strong>'Chatter' is Critical:</strong> Your inner critic is in control. This is a direct drain on your mental health. <strong>Dr. Ethan Kross's</strong> #1 tool is 'distanced self-talk.' Today, when you feel the chatter, use your name: 'John, you are feeling X. It is temporary. Focus on Y.' Do not use 'I'.</p>");
+    }
+    if (answers.q_compassion <= 2) {
+      feedback.push("<p class='call-out'><strong>Self-Compassion Low:</strong> You are treating yourself harshly. <strong>Dr. Rachel Turow's</strong> work shows this is a habit that *can* be changed. Today, practice the 'Self-Talk Workout': when you breathe in, think 'Inhale, my love.' When you breathe out, 'Exhale, my love.' It feels silly, but it retrains your brain.</p>");
+    }
+    if (answers.q_conflict <= 2) {
+      feedback.push("<p class='call-out-bad'><strong>Conflict Alert:</strong> A 1 or 2 here means **Dr. Gottman's 'Four Horsemen'** (Criticism, Contempt, Defensiveness, Stonewalling) are present. These predict separation. Your #1 relational job today is to avoid these. If you have a complaint, use a 'gentle start-up': 'I feel (X) about (Y), I need (Z)'.</p>");
+    }
+    if (answers.q_connection <= 2) {
+      feedback.push("<p class='call-out'><strong>Connection Low:</strong> You may be in a 'desire' vs. 'security' paradox (<strong>Dr. Esther Perel</strong>). Security needs routine, but desire needs novelty. You are also missing **Gottman's** 'sliding door moments.' Your action today: Ask your partner an open-ended question and *just listen* for 2 minutes.</p>");
+    }
+    if (answers.q_support <= 2) {
+      feedback.push("<p class='call-out'><strong>Support System Low:</strong> **Dr. Waldinger's** 85-year Harvard study proves secure relationships are the #1 predictor of a long, healthy life. This is a red flag for your *physical* health. Your action: 'Turn toward' one small bid for connection from your partner today.</p>");
+    }
+    
+    if (feedback.length === 0) {
+      feedback.push("<p><strong>Tungsten Standard Met:</strong> Your scores indicate a high level of holistic health. You are balanced across your physical, mental, and relational pillars. Your focus today is *consistency*. Maintain your routines and be mindful of what's working.</p>");
+    }
+
+    let pillClass = 'success';
+    if (totalScore < 70) pillClass = 'warning';
+    if (totalScore < 40) pillClass = 'danger';
+
+    return {
+      physical: physicalScore,
+      mental: mentalScore,
+      relational: relationalScore,
+      total: totalScore,
+      feedback: feedback.join(''),
+      pillClass: pillClass
+    };
+  }
+  
+  function _calculateMacros(appState) {
+    const { sex, age, activity } = appState;
+    const kg = state.weightKg;
+    const cm = state.heightCm;
+    const s = sex === 'male' ? 5 : -161;
+    const bmr = (10 * kg) + (6.25 * cm) - (5 * age) + s;
+    const tdee = bmr * (ACTIVITY[activity] || 1.55);
+    const targetKcal = tdee; // Maintain TDEE
+    const protPerKg = 1.8;
+    const gP = protPerKg * kg;
+    const kcalP = gP * 4;
+    const gF = FAT_PER_KG * kg;
+    const kcalF = gF * 9;
+    const kcalC = targetKcal - kcalP - kcalF;
+    const gC = kcalC / 4;
+    
+    return { targetKcal: r(targetKcal), gP: r(gP), gC: r(gC), gF: r(gF) };
+  }
+  
+  function _calculateDayPlan(appState, checkIn) {
+    const { sessionType } = appState;
+    const { physical, mental, relational } = checkIn;
+    let blocks = [];
+    
+    if (sessionType === 'recovery' || physical < 40 || state.checkInAnswers.q_energy <= 2) {
+      blocks.push({ label: 'Training', text: 'Today is a **Recovery Day**. Your physical scores or energy are low. Focus on light movement (Zone 2 for 20-30 min), mobility, and hydration.' });
+    } else {
+      blocks.push({ label: 'Training', text: `Proceed with your planned **${sessionType}** session.` });
+    }
+    
+    if (mental < 50) {
+      blocks.push({ label: 'Mindset', text: "Your mental score is low. Practice a **SEAL Box Breathing** session (4x4x4x4) for 3-5 minutes before your workout to clear 'chatter' (Dr. Kross)." });
+    }
+    
+    if (relational < 50) {
+      blocks.push({ label: 'Relational', text: "Your relational score is low. Per **Gottman's** research, send your partner a text of appreciation or ask one intentional question today." });
+    }
+    
+    return blocks.map(b => `<div class="feedback-block" style="margin-bottom: 0.5rem;"><strong>${b.label}:</strong> ${b.text}</div>`).join('');
+  }
+  
+  function _calculateCardio(appState) {
+    const { age, rhr, sessionType } = appState;
+    const hrMax = 220 - age;
+    const hrRest = rhr || (hrMax * 0.35);
+    const hrr = hrMax - hrRest;
+    const hasRHR = !!rhr;
+    
+    const z2_low = hasRHR ? (hrr * 0.60) + hrRest : hrMax * 0.70;
+    const z2_high = hasRHR ? (hrr * 0.70) + hrRest : hrMax * 0.80;
+    const z5_low = hasRHR ? (hrr * 0.90) + hrRest : hrMax * 0.90;
+    const z5_high = hrMax;
+
+    let vo2max = null, classification = 'N/A', vo2target = '';
+    if (rhr && rhr > 0) {
+      vo2max = 15.3 * (hrMax / rhr);
+      classification = classifyVO2(vo2max, state.sex, getAgeGroup(age));
+    }
+    
+    if (sessionType === 'endurance') {
+      vo2target = "<b>VO₂max Focus:</b> Accumulate 3-5 minute intervals in Zone 5 (90-100% HRmax). Ex: 4x [4 min @ Z5] + [3 min @ Z2].";
+    } else if (sessionType === 'power') {
+      vo2target = "<b>Power/Sprint Focus:</b> HIIT will tax VO₂max. Ex: 8x [30s all-out] + [90s light recovery].";
+    } else {
+      vo2target = "<b>Goal:</b> VO₂max is not the primary target. Focus on your session goal (e.g., strength, recovery).";
+    }
+    
+    const zones = [
+      { z: 'Z1', pct: '50–60%', bpm: `${r(hrMax*0.5)}–${r(hrMax*0.6)}` },
+      { z: 'Z2', pct: '60–70%', bpm: `<b>${r(z2_low)}–${r(z2_high)}</b>` },
+      { z: 'Z3', pct: '70–80%', bpm: `${r(hrMax*0.7)}–${r(hrMax*0.8)}` },
+      { z: 'Z4', pct: '80–90%', bpm: `${r(hrMax*0.8)}–${r(hrMax*0.9)}` },
+      { z: 'Z5', pct: '90–100%', bpm: `<b>${r(z5_low)}–${r(z5_high)}</b>` }
+    ];
+    
+    return { hrMax: r(hrMax), hrRest: r(hrRest), vo2max: r(vo2max, 1), classification, vo2target, zones };
+  }
+  
+  function _calculateCycle(sex, checkIn) {
+    display(els.cycleSuppCard, sex === 'female');
+    display(els.cycleSuppCardHeader, sex === 'female');
+    if (sex !== 'female') return '';
+    
+    // This is a placeholder. A real app would get cycle phase from user.
+    const cycle = 'luteal'; 
+    let items = [];
+    if (cycle === 'menstruation') items.push('<b>Iron:</b> Key due to blood loss. <b>Magnesium:</b> May help cramps.');
+    else if (cycle === 'follicular') items.push('<b>Baseline:</b> Focus on whole-food nutrients. <b>Vitamin D.</b>');
+    else if (cycle === 'ovulatory') items.push('<b>Peak Energy:</b> Ensure adequate hydration/electrolytes.');
+    else if (cycle === 'luteal') items.push('<b>Magnesium:</b> May help PMS, sleep. <b>B-Vitamins (B6):</b> Mood support.');
+    return items.map(s => `<p style="margin:0;">• ${s}</p>`).join('');
+  }
+  
+  function _calculateCold(appState, checkIn) {
+    const { sessionType } = appState;
+    const growth = (sessionType === 'hypertrophy');
+    const physicalScore = checkIn.physical;
+    
+    let rec = { recommend: false, rationale: '', timing: '', tempC: 10, tempF: 50, durationMin: 0 };
+    
+    if (growth) {
+      rec.recommend = physicalScore < 60; // Use only if feeling very run down
+      rec.rationale = 'Growth focus: Avoid immediate post-lift cold; it can blunt hypertrophy. Use for fatigue if needed.';
+      rec.timing = '6–12h after lifting';
+      rec.durationMin = rec.recommend ? 3 : 0;
+    } else if (['endurance', 'power', 'competition'].includes(sessionType)) {
+      rec.recommend = true;
+      rec.rationale = 'Recovery/turnaround focus. Reduces soreness.';
+      rec.timing = '0–60 min post-session';
+      rec.durationMin = 3;
+    } else if (sessionType === 'recovery') {
+      rec.recommend = true;
+      rec.rationale = 'Recovery day; good for inflammation & mental resilience.';
+      rec.timing = 'Any time, morning preferred.';
+      rec.durationMin = 3;
+    }
+    
+    const tempUnit = state.units === 'us' ? '°F' : '°C';
+    const temp = state.units === 'us' ? rec.tempF : rec.tempC;
+    
+    return {
+      recommend: rec.recommend ? 'Yes' : 'No',
+      timing: rec.recommend ? rec.timing : 'N/A',
+      temp: rec.recommend ? `${temp} ${tempUnit}` : 'N/A',
+      duration: rec.recommend ? `${rec.durationMin} min` : 'N/A',
+      rationale: rec.rationale,
+      show: rec.recommend
+    };
+  }
+
+  function _calculateSleep(appState, checkIn) {
+    const { sleepLast } = appState;
+    const sleepBase = state.sex === 'female' ? 8.5 : 7.8;
+    const sleepDebt = Math.max(0, sleepBase - sleepLast);
+    const sleepNeed = clamp(sleepBase + sleepDebt, 7.5, 9.5);
+    
+    let feedback = `<b>Sleep Focus:</b> Prioritize <b>${r(sleepNeed,1)} hours</b>. `;
+    if (sleepDebt > 0) {
+      feedback += `You have ~${r(sleepDebt,1)}h sleep debt.`;
+    } else {
+      feedback += `You have no detectable sleep debt.`;
+    }
+    
+    return {
+      need: r(sleepNeed, 1),
+      windDown: '4-7-8 Breath',
+      feedback: feedback
+    };
+  }
+  
+  function _calculateMindset(appState, checkIn) {
+    const { sex } = appState;
+    const { mental } = checkIn;
+    const answers = state.checkInAnswers;
+    
+    // Self-Talk
+    const bank = SELF_TALK[sex];
+    let talk = [];
+    if (answers.q_chatter <= 2) talk.push(bank.calm[0]);
+    if (answers.q_mood <= 2) talk.push(bank.boost[0]);
+    if (mental < 50) talk.push(bank.grit[0]);
+    if (talk.length === 0) talk.push(bank.focus[0]);
+    const selfTalk = talk.slice(0, 2).map(t => `<p style="margin:0;">• ${t}</p>`).join('');
+    
+    // Breathing
+    const needDown = (answers.q_chatter <= 2 || answers.q_mood <= 2);
+    const breathPick = nonRepeatingPick('breath-'+todayKey, needDown ? BREATH.downshift : BREATH.focus, 1)[0];
+    const breath = `<p style="margin:0;"><b>${breathPick.title} (${breathPick.duration}):</b> ${breathPick.detail}</p>`;
+    
+    // Scripture & Prayer
+    const prayer = `<p style="margin:0;">${nonRepeatingPick('prayer-'+todayKey, PRAYERS, 1)[0]}</p>`;
+    const scriptCtx = {
+      stress: answers.q_chatter <= 2,
+      moodLow: answers.q_mood <= 2,
+      driveLow: answers.q_energy <= 2
+    };
+    let theme = 'hope';
+    if(scriptCtx.stress) theme = 'peace';
+    if(scriptCtx.moodLow) theme = 'recovery';
+    if(scriptCtx.driveLow) theme = 'strength';
+    const verse = nonRepeatingPick('script-'+todayKey+'-'+theme, NKJV[theme] || NKJV.hope, 1)[0];
+    const scripture = `<p style="margin:0;">"${verse.txt}"</p><small>— ${verse.ref}</small>`;
+    
+    return { selfTalk, breath, prayer, scripture };
+  }
+  
+  function getAgeGroup(age) {
+    if (age <= 25) return '18-25'; if (age <= 35) return '26-35'; if (age <= 45) return '36-45';
+    if (age <= 55) return '46-55'; if (age <= 65) return '56-65'; return '65+';
+  }
+
+  /***** MAIN APP LOGIC *****/
+  function recalculate() {
+    const checkIn = _calculateCheckIn(state.checkInAnswers);
+    const macros = _calculateMacros(state);
+    const plan = _calculateDayPlan(state, checkIn);
+    const cardio = _calculateCardio(state);
+    const cycle = _calculateCycle(state.sex, checkIn);
+    const cold = _calculateCold(state, checkIn);
+    const sleep = _calculateSleep(state, checkIn);
+    const mindset = _calculateMindset(state, checkIn);
+    
+    render(checkIn, macros, plan, cardio, cycle, cold, sleep, mindset);
+  }
+
+  function render(checkIn, macros, plan, cardio, cycle, cold, sleep, mindset) {
+    // Check-In
+    els.checkInFeedback.innerHTML = checkIn.feedback;
+    els.scorePill.textContent = `SCORE: ${checkIn.total}%`;
+    els.scorePill.className = `pill ${checkIn.pillClass}`;
+    
+    // Day Plan
+    els.planBlocks.innerHTML = plan;
+    
+    // Macros
+    els.targetKcal.textContent = macros.targetKcal;
+    els.gP.textContent = macros.gP;
+    els.gC.textContent = macros.gC;
+    els.gF.textContent = macros.gF;
+
+    // Cycle
+    els.cycleSupp.innerHTML = cycle;
+    
+    // Cold
+    els.coldYesNo.textContent = cold.recommend;
+    els.coldTiming.textContent = cold.timing;
+    els.coldTemp.textContent = cold.temp;
+    els.coldDur.textContent = cold.duration;
+    els.coldWhy.textContent = cold.rationale;
+    display(els.coldTempKpi, cold.show);
+    display(els.coldDurKpi, cold.show);
+    
+    // Cardio
+    els.hrMax.textContent = cardio.hrMax;
+    els.hrRest.textContent = cardio.hrRest;
+    els.vo2max.textContent = cardio.vo2max;
+    els.vo2class.textContent = cardio.classification;
+    els.vo2target.innerHTML = cardio.vo2target;
+    els.zoneTable.innerHTML = cardio.zones.map(z => 
+      `<div class="kpi"><small>${z.z} (${z.pct})</small><b>${z.bpm}</b></div>`
+    ).join('');
+    
+    // Sleep
+    els.sleepNeed.textContent = sleep.need;
+    els.sleepBreath.textContent = sleep.windDown;
+    els.sleepDeepDive.innerHTML = sleep.feedback;
+    
+    // Mindset
+    els.selfTalk.innerHTML = mindset.selfTalk;
+    els.breathBlock.innerHTML = mindset.breath;
+    els.prayer.innerHTML = mindset.prayer;
+    els.scripture.innerHTML = mindset.scripture;
+    
+    // Sticky Footer
+    els.sumScore.textContent = `${checkIn.total}%`;
+    els.sumRelational.textContent = `${checkIn.relational}%`;
+    els.sumMental.textContent = `${checkIn.mental}%`;
+    els.sumPhysical.textContent = `${checkIn.physical}%`;
+  }
+  
+  /***** EVENT LISTENERS *****/
+  function handleInputChange(e) {
+    const { id, value, type } = e.target;
+    
+    if (type === 'number') {
+      state[id] = value ? Number(value) : null;
+    } else {
+      state[id] = value;
+    }
+    
+    if (id === 'heightFt' || id === 'heightIn') {
+      state.heightCm = r(cmFromFtIn(state.heightFt, state.heightIn), 1);
+      els.heightCm.value = state.heightCm;
+    }
+    else if (id === 'heightCm') {
+      const { ft, inch } = ftInFromCm(state.heightCm);
+      state.heightFt = ft; state.heightIn = inch;
+      els.heightFt.value = ft; els.heightIn.value = inch;
+    }
+    else if (id === 'weightLb') {
+      state.weightKg = r(kgFromLbs(state.weightLb), 1);
+      els.weightKg.value = state.weightKg;
+    }
+    else if (id === 'weightKg') {
+      state.weightLb = r(lbsFromKg(state.weightKg), 1);
+      els.weightLb.value = state.weightLb;
+    }
+
+    recalculateAndSave();
+  }
+  
+  function handleUnitToggle() {
+    state.units = state.units === 'us' ? 'metric' : 'us';
+    toggleUnitViews(state.units);
+    recalculateAndSave();
+  }
+  
+  // --- NEW: Tab Navigation Logic ---
+  function handleTabClick(e) {
+    const targetId = e.target.id.replace('Btn-', '');
+    
+    // Deactivate all
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Activate target
+    $(`tab-${targetId}`).classList.add('active');
+    e.target.classList.add('active');
+  }
+  
+  function recalculateAndSave() {
+    recalculate();
+    saveState();
+  }
+  
+  function exportPlan() {
+    els.exportBtn.textContent = '...';
+    window.print();
+    setTimeout(() => { els.exportBtn.textContent = 'Print'; }, 1000);
+  }
+  
+  function toggleIdeas() {
+    const show = els.ideas.classList.toggle('hide');
+    els.ideasBtn.textContent = show ? 'Meal Ideas' : 'Hide Ideas';
+    if (!show && els.ideas.innerHTML === '') {
+      els.ideas.innerHTML = Object.keys(MEALS).map(k =>
+        `<h4 style="margin: 0.5rem 0 0.25rem; font-weight: 700;">${k.charAt(0).toUpperCase() + k.slice(1)}</h4><p style="margin:0; font-size: 0.9rem; color: var(--text-secondary);">` +
+        MEALS[k].map(m => `• ${m}`).join('<br>') +
+        '</p>'
+      ).join('');
+    }
+  }
+
+  /***** INITIALIZATION *****/
+  function init() {
+    loadState();
+    syncDomFromState();
+    buildCheckIn();
+    recalculate();
+    
+    // Bind listeners
+    const inputs = ['sex','age','rhr','heightFt','heightIn','heightCm','weightLb','weightKg','activity','sleepLast','sessionType'];
+    inputs.forEach(id => els[id]?.addEventListener('input', handleInputChange));
+    
+    els.unitsBtn.addEventListener('click', handleUnitToggle);
+    els.exportBtn.addEventListener('click', exportPlan);
+    els.ideasBtn.addEventListener('click', toggleIdeas);
+    
+    // Tab Listeners
+    els.tabBtnCheckin.addEventListener('click', handleTabClick);
+    els.tabBtnPlan.addEventListener('click', handleTabClick);
+    els.tabBtnMindset.addEventListener('click', handleTabClick);
+  }
+
+  init();
+
+})();
+</script>
+</body>
+</html>
